@@ -1,0 +1,23 @@
+{
+  "name": "turbo-garbanzo",
+  "version": "1.0.0",
+  "description": "Advanced application development group project repository",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rysbrand/turbo-garbanzo.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rysbrand/turbo-garbanzo/issues"
+  },
+  "homepage": "https://github.com/rysbrand/turbo-garbanzo#readme",
+  "dependencies": {
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.91.1"
+  }
+}
