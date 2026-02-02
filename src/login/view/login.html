@@ -1,26 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
-    <link rel="stylesheet" href="loginstyle.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign in</title>
+    <link rel="stylesheet" href="./output.css" />
 </head>
-<body>
-    <div class="login-container">
-        <h2>Login</h2>
-        <form id="loginForm">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" required>
 
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required>
+<body class="min-h-screen bg-slate-50 flex items-center justify-center px-4">
 
-            <button type="submit">Login</button>
-            <p id="errorMessage"></p>
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
+        
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-slate-800">Welcome back</h1>
+            <p class="text-slate-500 mt-2">Sign in to your account</p>
+        </div>
+
+        <!-- Form -->
+        <form id="loginForm" class="space-y-5">
+
+            <!-- Username -->
+            <div>
+                <label for="username" class="block text-sm font-medium text-slate-700">
+                    Username
+                </label>
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    required
+                    class="mt-1 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="yourname"
+                />
+            </div>
+
+            <!-- Password -->
+            <div>
+                <label for="password" class="block text-sm font-medium text-slate-700">
+                    Password
+                </label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    required
+                    class="mt-1 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="••••••••"
+                />
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center justify-between text-sm">
+                <label class="flex items-center gap-2 text-slate-600">
+                    <input type="checkbox" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                    Remember me
+                </label>
+
+                <a href="#" class="text-indigo-600 hover:text-indigo-500 font-medium">
+                    Forgot password?
+                </a>
+            </div>
+
+            <!-- Submit -->
+            <button
+                type="submit"
+                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            >
+                Sign in
+            </button>
+
+            <!-- Error -->
+            <p id="errorMessage" class="text-center text-sm text-red-500"></p>
         </form>
+
+        <!-- Footer -->
+        <p class="text-center text-sm text-slate-500 mt-8">
+            Don’t have an account?
+            <a href="#" class="text-indigo-600 hover:text-indigo-500 font-medium">
+                Sign up
+            </a>
+        </p>
     </div>
 
-    <script scr="loginscript.js"></script>
+    <script src="loginscript.js"></script>
 </body>
 </html>
