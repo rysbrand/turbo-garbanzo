@@ -1,18 +1,18 @@
-const loginForm = document.getElementById("loginForm");
+const form = document.getElementById("loginForm");
 const errorMessage = document.getElementById("errorMessage");
 
-loginForm.addEventListener("submit", function(event) {
-    event.preventDefault();
+form.addEventListener("submit", function (e) {
+    e.preventDefault();
 
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
+    const email = form.querySelector('input[type="email"]').value.trim();
+    const password = form.querySelector('input[type="password"]').value.trim();
 
-    if(username === "admin" && password === "password123") {
-        alert("Login successful!");
-        errorMessage.textContent = "";
-    }
-    else 
-    {
-        errorMessage.textContent = "Invalid username or password.";
+    // TEMP logic (replace with backend later)
+    if (email === "test@example.com" && password === "password123") {
+        errorMessage.classList.add("hidden");
+        alert("Login successful");
+        // window.location.href = "dashboard.html";
+    } else {
+        errorMessage.classList.remove("hidden");
     }
 });

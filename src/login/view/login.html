@@ -4,17 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sign in</title>
-    <link rel="stylesheet" href="./output.css" />
+    <link rel="stylesheet" href="../../output.css" />
 </head>
 
-<body class="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+<body class="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex items-center justify-center px-4 text-white">
 
-    <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
+    <div class="w-full max-w-md bg-slate-900/90 backdrop-blur rounced-2x1 shadow-x1 p-8">
+
+        <!-- Logo (if wanted) -->
+         <div class="flex justify-center mb-6">
+            <div class="h-10 w-10 rounded-full bg-indigo-500"></div>
+         </div>
         
         <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-slate-800">Welcome back</h1>
-            <p class="text-slate-500 mt-2">Sign in to your account</p>
+        <div class="text-center text-2x1 font-semibold mb-8">
+            Sign in to your account
         </div>
 
         <!-- Form -->
@@ -22,42 +26,36 @@
 
             <!-- Email -->
             <div>
-                <label for="email" class="block text-sm font-medium text-slate-700">
-                    Email
+                <label class="block text-sm mb-1 text-slate-300">
+                    Email address
                 </label>
                 <input
-                    type="text"
-                    id="email"
-                    name="email"
+                    type="email"
                     required
-                    class="mt-1 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Email Address"
+                    class="w-full rounded-lg bg-slate-800 border border-slate-700 px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
             </div>
 
             <!-- Password -->
             <div>
-                <label for="password" class="block text-sm font-medium text-slate-700">
+                <label class="block text-sm mb-1 text-slate-300">
                     Password
                 </label>
                 <input
                     type="password"
-                    id="password"
-                    name="password"
                     required
-                    class="mt-1 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="••••••••"
+                    class="w-full rounded-lg bg-slate-800 border border-slate-700 px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
             </div>
 
             <!-- Actions -->
             <div class="flex items-center justify-between text-sm">
-                <label class="flex items-center gap-2 text-slate-600">
-                    <input type="checkbox" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                <label class="flex items-center gap-2 text-slate-400">
+                    <input type="checkbox" class="rounded border-slate-600 text-indigo-500"/>
                     Remember me
                 </label>
 
-                <a href="#" class="text-indigo-600 hover:text-indigo-500 font-medium">
+                <a href="#" class="text-indigo-600 hover:text-indigo-300">
                     Forgot password?
                 </a>
             </div>
@@ -71,7 +69,9 @@
             </button>
 
             <!-- Error -->
-            <p id="errorMessage" class="text-center text-sm text-red-500"></p>
+            <p id="errorMessage" class="hidden text-red-600 text-sm mt-2">
+                Invalid email or password
+            </p>
         </form>
 
         <!-- Footer -->
