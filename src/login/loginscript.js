@@ -1,6 +1,4 @@
-
-
-import { supabase } from "../lib/supabase/client.js";
+import { supabase } from "../../lib/supabase/client.js";
 
 console.log(import.meta.env.VITE_SUPABASE_URL);
 
@@ -21,15 +19,18 @@ form.addEventListener("submit", async (e) => {
     e.preventDefault();
     hideError();
 
-    const email = form.querySelector('input[type="email"]').value.trim();
-    const password = form.querySelector('input[type="password"]').value.trim();
+    const email = form.querySelector("#email").value.trim();
+    const password = form.querySelector("#password").value;
 
-    // TEMP logic (replace with backend later)
-    if (email === "test@example.com" && password === "password123") {
-        errorMessage.classList.add("hidden");
-        alert("Login successful");
-        // window.location.href = "dashboard.html";
-    } else {
-        errorMessage.classList.remove("hidden");
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+        console.error(error);
+        return showError(error.message);
+
     }
+
+    console.log("Logged in user:", data.user);
+
+    window.location.href = "/src/dashboard/maindashboard.html";
 });
