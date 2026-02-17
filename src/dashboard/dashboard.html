@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="../output.css">
+</head>
+
+<body class="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white flex flex-col">
+    <!-- Header -->
+<header class="bg-slate-900/90 backdrop-blur shadow-lg px-6 py-4 flex items-center justify-between">
+
+    <!-- Profile Image -->
+    <a href="../tabs/profile.html" class="flex items-center gap-4">
+        <img 
+            src="#"
+            alt="Profile"
+            class="h-13 w-13 rounded-full border-2 border-indigo-500 hover:scale-105 transition cursor-pointer"
+        />
+    </a>
+
+    <!-- Company Name + Logo -->
+    <h1 class="absolute left-1/2 transform -translate-x-1/2 text-4xl font-semibold flex items-center gap-3">
+        Company Name
+    </h1>
+</header>
+
+<!-- Main Content -->
+ <main class="flex-1 p-6 space-y-8 max-w-7xl w-full mx-auto">
+
+    <!-- Action Boxes -->
+     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+
+        <a href="#" class="bg-slate-800 rounded-xl p-6 text-center shadow hover:bg-slate-700 transition">
+            <h2 class="font-semibold text-lg">Schedule</h2>
+        </a>
+
+        <a href="#" class="bg-slate-800 rounded-xl p-6 text-center shadow hover:bg-slate-700 transition">
+            <h2 class="font-semibold text-lg">Availability</h2>
+        </a>
+
+        <a href="#" class="bg-slate-800 rounded-xl p-6 text-center shadow hover:bg-slate-700 transition">
+            <h2 class="font-semibold text-lg">Pay</h2>
+        </a>
+
+        <a href="#" class="bg-slate-800 rounded-xl p-6 text-center shadow hover:bg-slate-700 transition">
+            <h2 class="font-semibold text-lg">Timesheet</h2>
+        </a>
+     </div>
+
+     <!-- Welcome message -->
+    <div class="bg-slate-800 rounded-xl p-8 text-center shadow">
+        <h2 id="welcomeMessage" class="text-xl font-medium"></h2>
+    </div>
+
+    <!-- Calendar -->
+    <div class="bg-slate-800 rounded-xl p-8 shadow-lg">
+        <!-- Calendar Header -->
+        <div class="flex justify-between items-center mb-6">
+            <h2 id="calendarHeader" class="text-lg font-semibold"></h2>
+        </div>
+
+        <!-- Days of the Week -->
+        <div class="grid grid-cols-7 text-center text-sm mb-2">
+        <div class="text-slate-400">Sun</div>
+        <div class="text-slate-400">Mon</div>
+        <div class="text-slate-400">Tue</div>
+        <div class="text-slate-400">Wed</div>
+        <div class="text-slate-400">Thu</div>
+        <div class="text-slate-400">Fri</div>
+        <div class="text-slate-400">Sat</div>
+    </div>
+
+        <!-- Calendar Days -->
+        <div id="calendarDays" class=" grid grid-cols-7 gap-2 text-center text-sm"></div>
+</div>
+</main>
+
+ <!-- Footer -->
+  <footer class="bg-slate-900 text-slate-400 text-center py-4 text-sm">
+    © 2026 Company Name. All rights reserved.
+  </footer>
+
+  <script src="dashboardscript.js"></script>
+
+</body>
+</html>

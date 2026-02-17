@@ -9,9 +9,7 @@ form.addEventListener("submit", function (e) {
 
     // TEMP logic (replace with backend later)
     if (email === "test@example.com" && password === "password123") {
-        errorMessage.classList.add("hidden");
-        alert("Login successful");
-        // window.location.href = "dashboard.html";
+        window.location.href = "../../dashboard/dashboard.html";
     } else {
         errorMessage.classList.remove("hidden");
     }
