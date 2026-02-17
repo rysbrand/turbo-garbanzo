@@ -10,7 +10,7 @@ const name = storedUser?.firstName || "User";
 //(Later replace this with Supabase data)
 
 const schedule = [
-    { date: "2026-02-18", start: "9:00 AM", end: "5:00 PM" },
+    { date: "2026-02-17", start: "9:00 AM", end: "5:00 PM" },
     { date: "2026-02-19", start: "10:00 AM", end: "6:00 PM" },
     { date: "2026-02-22", start: "8:00 AM", end: "4:00 PM" }
 ];
