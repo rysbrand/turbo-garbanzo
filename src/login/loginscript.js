@@ -1,4 +1,4 @@
-import { supabase } from "../../lib/supabase/client.js";
+import { supabase } from "../lib/supabase/client.js";
 
 console.log(import.meta.env.VITE_SUPABASE_URL);
 
@@ -32,5 +32,5 @@ form.addEventListener("submit", async (e) => {
 
     console.log("Logged in user:", data.user);
 
-    window.location.href = "/src/dashboard/maindashboard.html";
+    window.location.href = "../dashboard/dashboard.html";
 });
