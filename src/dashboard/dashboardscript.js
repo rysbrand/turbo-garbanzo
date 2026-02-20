@@ -24,7 +24,7 @@ async function loadDashboard() {
 const storedUser = JSON.parse(localStorage.getItem("user"));
 
 const name = storedUser?.firstName || session.user.email || "User";
-//eventually wanna use user info once we have a Signup
+//eventually wanna use user info once we have a Signup/register
 
 
 //sample schedule data
