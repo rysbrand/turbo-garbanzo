@@ -23,14 +23,15 @@ form.addEventListener("submit", async (e) => {
     const password = form.querySelector("#password").value;
 
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
+    //for debugging, uncomment: 
+        // console.log("login error:", error)
+        // console.log("login data:", data)
     if (error) {
         console.error(error);
         return showError(error.message);
-
     }
-
-    console.log("Logged in user:", data.user);
+    //troubleshoot, does not return user
+    alert("Logged in user:", data.user);
 
     window.location.href = "../dashboard/dashboard.html";
 });

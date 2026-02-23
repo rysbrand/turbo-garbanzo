@@ -1,9 +1,30 @@
+import { supabase } from "../lib/supabase/client.js";
+//add sessions.
+async function requireAuth() {
+    const {data: {session}, error} = await supabase.auth.getSession();
+
+    if (error) console.error("getSession error:", error);
+//require sessions
+    if (!session) {
+        window.location.href = "../login/login.html";
+        return null;
+    }
+    return session;
+
+}
+//only load dashboard if valid user
+async function loadDashboard() {
+    const session = await requireAuth();
+    if(!session) return;
+
+
 //User data
 
 //Get user name from localStorage (set this during login)
 const storedUser = JSON.parse(localStorage.getItem("user"));
 
-const name = storedUser?.firstName || "User";
+const name = storedUser?.firstName || session.user.email || "User";
+//eventually wanna use user info once we have a Signup/register
 
 
 //sample schedule data
@@ -90,3 +111,5 @@ for (let day = 1; day <= daysInMonth; day++) {
 
     calendarDays.appendChild(dayElement);
 }
+}
+loadDashboard();
