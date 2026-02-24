@@ -8,6 +8,7 @@ const Dashboard = () => {
   const [calendarHeader, setCalendarHeader] = useState('');
   const [calendarDays, setCalendarDays] = useState([]);
   const [todayDate, setTodayDate] = useState(null);
+  const [schedule, setSchedule] = useState([]);
   const navigate = useNavigate();
   
 
@@ -36,26 +37,32 @@ const Dashboard = () => {
       setName(userName);
 
       // Sample schedule data (replace with Supabase data later)
-      const schedule = [
+      const scheduleDate = [
         { date: '2026-02-17', start: '9:00 AM', end: '5:00 PM' },
         { date: '2026-02-19', start: '10:00 AM', end: '6:00 PM' },
-        { date: '2026-02-22', start: '8:00 AM', end: '4:00 PM' }
+        { date: '2026-02-24', start: '8:00 AM', end: '4:00 PM' }
       ];
+
+      setSchedule(scheduleDate);
+
       const today = new Date();
       const day = today.getDate();
       const year = today.getFullYear();
       const month = today.getMonth();
       const formattedTodayISO = today.toISOString().split('T')[0];
-      const todayShift = schedule.find(shift => shift.date === formattedTodayISO);
+
+      const todayShift = scheduleDate.find(shift => shift.date === formattedTodayISO);
       const formattedDate = today.toLocaleDateString('en-US', {
         month: 'long', day: 'numeric', year: 'numeric'
       });
+
       let welcome;
       if (todayShift) {
         welcome = `Welcome ${userName}, you work today ${formattedDate} from ${todayShift.start} to ${todayShift.end}`;
       } else {
         welcome = `Welcome ${userName}, you do not work today (${formattedDate})`;
       }
+
       setWelcomeMessage(welcome);
 
       // Calendar logic
@@ -83,28 +90,35 @@ const Dashboard = () => {
           Company Name
         </h1>
       </header>
+
       <main className="flex-1 p-6 space-y-8 max-w-7xl w-full mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <Link to="/schedule" className="bg-slate-800 rounded-xl p-6 text-center shadow hover:bg-slate-700 transition">
             <h2 className="font-semibold text-lg">Schedule</h2>
           </Link>
+
           <Link to="/availability" className="bg-slate-800 rounded-xl p-6 text-center shadow hover:bg-slate-700 transition">
             <h2 className="font-semibold text-lg">Availability</h2>
           </Link>
+
           <Link to="/pay" className="bg-slate-800 rounded-xl p-6 text-center shadow hover:bg-slate-700 transition">
             <h2 className="font-semibold text-lg">Pay</h2>
           </Link>
+
           <Link to="/timesheet" className="bg-slate-800 rounded-xl p-6 text-center shadow hover:bg-slate-700 transition">
             <h2 className="font-semibold text-lg">Timesheet</h2>
           </Link>
         </div>
+
         <div className="bg-slate-800 rounded-xl p-8 text-center shadow">
           <h2 className="text-xl font-medium">{welcomeMessage}</h2>
         </div>
+
         <div className="bg-slate-800 rounded-xl p-8 shadow-lg">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-semibold">{calendarHeader}</h2>
           </div>
+
           <div className="grid grid-cols-7 text-center text-sm mb-2">
             <div className="text-slate-400">Sun</div>
             <div className="text-slate-400">Mon</div>
@@ -114,19 +128,29 @@ const Dashboard = () => {
             <div className="text-slate-400">Fri</div>
             <div className="text-slate-400">Sat</div>
           </div>
+
           <div className="grid grid-cols-7 gap-2 text-center text-sm">
-            {calendarDays.map((day, idx) => (
+            {calendarDays.map((day, idx) => {
+              if (!day) return <div key={idx}></div>;
+
+              const dateObj = new Date(new Date().getFullYear(), new Date().getMonth(), day);
+              const isoDate = dateObj.toISOString().split('T')[0];
+
+              const isToday = day === todayDate;
+              const isWorkDay = schedule.some(shift => shift.date === isoDate);
+
+              return (
               <div
                 key={idx}
-                className={`h-8 flex items-center justify-center ${
-                  day && day === todayDate
-                    ? 'border border-indigo-500 rounded'
-                    : ''
-                }`}
+                className={`h-8 flex items-center justify-center 
+                  ${isToday ? 'p-2 rounded text-sm bg-indigo-600 font-semibold' : ''}
+                  ${isWorkDay ? 'border border-indigo-500' : ''}
+                `}
               >
-                {day ? day : ''}
+                {day}
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </main>
