@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase/client.js';
 import { useNavigate } from 'react-router-dom';
+import { ensureProfile } from '../lib/ensureProfile';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -18,6 +19,8 @@ const Login = () => {
       return;
     }
     console.log('Logged in user:', data.user);
+    //calls function from ensureProfile.js
+    await ensureProfile();
     navigate('/dashboard');
   };
 

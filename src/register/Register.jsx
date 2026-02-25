@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase/client.js';
+import { ensureProfile } from '../lib/ensureProfile';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -90,25 +91,16 @@ const Register = () => {
         }
       }
 
-      localStorage.setItem(
-        'user',
-        JSON.stringify({
-          id: data.user.id,
-          firstName: firstNameTrimmed,
-          lastName: lastNameTrimmed,
-          email: emailTrimmed,
-          mobile: mobileDigits,
-          
-        })
-      );
-
-      navigate('/login');
-    } catch (err) {
-      console.log(err);
-      setError(err?.message || 'Unexpected error while creating account.');
-    } finally {
-      setLoading(false);
+    if (signUpError) {
+      setError(signUpError.message);
+      return;
     }
+
+    // calls function from ensureProfile.js
+    await ensureProfile();
+
+    setMsg('Account created. Redirecting to sign in…');
+    navigate('/login');
   };
 
   return (
