@@ -83,6 +83,7 @@ const Register = () => {
             updated_at: new Date().toISOString(),
           }, { onConflict: 'id' });
 
+          console.log(data.user.id, firstNameTrimmed, lastNameTrimmed, emailTrimmed, password);
         if (profileError) {
           setError(profileError.message);
           return;
@@ -97,6 +98,7 @@ const Register = () => {
           lastName: lastNameTrimmed,
           email: emailTrimmed,
           mobile: mobileDigits,
+          
         })
       );
 
