@@ -9,7 +9,20 @@ const Dashboard = () => {
   const [calendarDays, setCalendarDays] = useState([]);
   const [todayDate, setTodayDate] = useState(null);
   const [schedule, setSchedule] = useState([]);
+  const [isClockedIn, setIsClockedIn] = useState(false);
+  const [clockMessage, setClockMessage] = useState('');
+  const [showClockMessage, setShowClockMessage] = useState(false);
   const navigate = useNavigate();
+
+  async function requireAuth() {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) console.error('getSession error:', error);
+    if (!session) {
+      navigate('/login');
+      return null;
+    }
+    return session;
+  }
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -19,6 +32,16 @@ const Dashboard = () => {
       navigate('/login');
     }
   };
+
+  const handleClockToggle = () => {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const action = isClockedIn ? 'Clocked out' : 'Clocked in';
+    setClockMessage(`You ${action} at ${timeString}`);
+    setIsClockedIn(!isClockedIn);
+    setShowClockMessage(true);
+    setTimeout(() => setShowClockMessage(false), 3000);
+  }
 
   useEffect(() => {
     async function requireAuth() {
@@ -48,7 +71,7 @@ const Dashboard = () => {
       const scheduleDate = [
         { date: '2026-02-17', start: '9:00 AM', end: '5:00 PM' },
         { date: '2026-02-19', start: '10:00 AM', end: '6:00 PM' },
-        { date: '2026-02-24', start: '8:00 AM', end: '4:00 PM' }
+        { date: '2026-02-25', start: '8:00 AM', end: '4:00 PM' }
       ];
 
       setSchedule(scheduleDate);
@@ -168,7 +191,22 @@ const Dashboard = () => {
             })}
           </div>
         </div>
+
+      <div className="flex flex-col items-center space-y-4">
+        <button
+          onClick={handleClockToggle}
+          className={`px-50 py-5 rounded text-white font-bold ${isClockedIn ? 'bg-red-600 hover:bg-red-500' : 'bg-green-600 hover:bg-green-500'} transition`}
+        >
+          {isClockedIn ? 'Clock Out' : 'Clock In'}
+        </button>
+        {showClockMessage && (
+          <div className="mt-2 p-2 bg-indigo-600 text-white rounded shadow-md animate-fade">{clockMessage}</div>)}
+      </div>
       </main>
+
+      <footer className="bg-slate-900/90 backdrop-blur text-center py-4 text-sm text-slate-500">
+      &copy; 2026 Company Name. All rights reserved.
+    </footer>
     </div>
   );
 };
