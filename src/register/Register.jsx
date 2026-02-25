@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase/client.js';
+import { ensureProfile } from '../lib/ensureProfile';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -61,13 +62,10 @@ const Register = () => {
       return;
     }
 
-    if (data?.user) {
-      localStorage.setItem(
-        'user',
-        JSON.stringify({ firstName, lastName, email, mobile })
-      );
-    }
+    // calls function from ensureProfile.js
+    await ensureProfile();
 
+    setMsg('Account created. Redirecting to sign in…');
     navigate('/login');
   };
 
