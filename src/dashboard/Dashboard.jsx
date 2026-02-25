@@ -10,7 +10,15 @@ const Dashboard = () => {
   const [todayDate, setTodayDate] = useState(null);
   const [schedule, setSchedule] = useState([]);
   const navigate = useNavigate();
-  
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) { console.error('Sign out error:', error);
+    } else {
+    localStorage.removeItem('user'); // Clear user info from localStorage
+      navigate('/login');
+    }
+  };
 
   useEffect(() => {
     async function requireAuth() {
@@ -86,9 +94,16 @@ const Dashboard = () => {
         <Link to="/profile" className="flex items-center gap-4">
           <img src="#" alt="Profile" className="h-13 w-13 rounded-full border-2 border-indigo-500 hover:scale-105 transition cursor-pointer" />
         </Link>
+
         <h1 className="absolute left-1/2 transform -translate-x-1/2 text-4xl font-semibold flex items-center gap-3">
           Company Name
         </h1>
+
+        <button
+          onClick={handleSignOut}
+          className="ml-4 px-4 py-2 bg-indigo-600 rounded hover:bg-indigo-500 transition"
+        >
+          Sign Out</button>
       </header>
 
       <main className="flex-1 p-6 space-y-8 max-w-7xl w-full mx-auto">
