@@ -195,7 +195,7 @@ const Dashboard = () => {
       <div className="flex flex-col items-center space-y-4">
         <button
           onClick={handleClockToggle}
-          className={`px-50 py-5 rounded text-white font-bold ${isClockedIn ? 'bg-red-600 hover:bg-red-500' : 'bg-green-600 hover:bg-green-500'} transition`}
+          className={`px-20 py-5 rounded text-white font-bold ${isClockedIn ? 'bg-red-600 hover:bg-red-500' : 'bg-green-600 hover:bg-green-500'} transition`}
         >
           {isClockedIn ? 'Clock Out' : 'Clock In'}
         </button>

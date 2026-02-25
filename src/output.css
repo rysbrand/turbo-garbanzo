@@ -524,6 +524,12 @@
   .px-14 {
     padding-inline: calc(var(--spacing) * 14);
   }
+  .px-15 {
+    padding-inline: calc(var(--spacing) * 15);
+  }
+  .px-20 {
+    padding-inline: calc(var(--spacing) * 20);
+  }
   .px-50 {
     padding-inline: calc(var(--spacing) * 50);
   }
