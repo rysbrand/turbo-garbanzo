@@ -89,6 +89,7 @@ const Register = () => {
           setError(profileError.message);
           return;
         }
+        
       }
 
     if (signUpError) {
@@ -101,7 +102,14 @@ const Register = () => {
 
     setMsg('Account created. Redirecting to sign in…');
     navigate('/login');
-  };
+  }
+  catch (err) {
+      console.log(err);
+      setError(err?.message || 'Unexpected error while creating account.');
+  } finally {
+      setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex items-center justify-center px-4 text-white">

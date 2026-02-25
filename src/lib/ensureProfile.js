@@ -25,7 +25,6 @@ export async function ensureProfile() {
       id: user.id,
       first_name: md.first_name ?? null,
       last_name:  md.last_name  ?? null,
-      updated_at: new Date().toISOString(),
     });
     if (insErr) console.error('insert profiles error:', insErr);
   }
