@@ -16,22 +16,28 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
 
   const validateEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  const normalizePhone = (value) => value.replace(/\D/g, '');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (!firstName || !lastName || !email || !mobile || !password || !confirmPassword) {
+    const firstNameTrimmed = firstName.trim();
+    const lastNameTrimmed = lastName.trim();
+    const emailTrimmed = email.trim().toLowerCase();
+    const mobileDigits = normalizePhone(mobile);
+
+    if (!firstNameTrimmed || !lastNameTrimmed || !emailTrimmed || !mobileDigits || !password || !confirmPassword) {
       setError('All fields are required.');
       return;
     }
 
-    if (!validateEmail(email)) {
+    if (!validateEmail(emailTrimmed)) {
       setError('Please enter a valid email address.');
       return;
     }
 
-    if (!/^\d{10}$/.test(mobile)) {
+    if (!/^\d{10}$/.test(mobileDigits)) {
       setError('Mobile number must be 10 digits.');
       return;
     }
@@ -43,19 +49,47 @@ const Register = () => {
 
     setLoading(true);
 
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          first_name: firstName,
-          last_name: lastName,
-          mobile,
+    try {
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: emailTrimmed,
+        password,
+        options: {
+          data: {
+            first_name: firstNameTrimmed,
+            last_name: lastNameTrimmed,
+            mobile: mobileDigits,
+          },
         },
-      },
-    });
+      });
 
-    setLoading(false);
+      if (signUpError) {
+        setError(signUpError.message);
+        return;
+      }
+
+      if (!data?.user) {
+        setError('Account was not created. Please try again.');
+        return;
+      }
+
+      // If email confirmation is disabled, we can immediately upsert profile data.
+      // If confirmation is required, the DB trigger still creates the profile row from metadata.
+      if (data.session) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: data.user.id,
+            first_name: firstNameTrimmed,
+            last_name: lastNameTrimmed,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'id' });
+
+          console.log(data.user.id, firstNameTrimmed, lastNameTrimmed, emailTrimmed, password);
+        if (profileError) {
+          setError(profileError.message);
+          return;
+        }
+      }
 
     if (signUpError) {
       setError(signUpError.message);
