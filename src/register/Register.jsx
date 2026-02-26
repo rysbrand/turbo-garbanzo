@@ -84,7 +84,7 @@ const Register = () => {
             updated_at: new Date().toISOString(),
           }, { onConflict: 'id' });
 
-          console.log(data.user.id, firstNameTrimmed, lastNameTrimmed, emailTrimmed, password);
+          //console.log(data.user.id, firstNameTrimmed, lastNameTrimmed, emailTrimmed, password);
         if (profileError) {
           setError(profileError.message);
           return;
@@ -99,8 +99,7 @@ const Register = () => {
 
     // calls function from ensureProfile.js
     await ensureProfile();
-
-    setMsg('Account created. Redirecting to sign in…');
+    
     navigate('/login');
   }
   catch (err) {
