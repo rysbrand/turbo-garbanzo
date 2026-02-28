@@ -38,14 +38,13 @@ const Dashboard = () => {
     if (!user) return;
 
     const now = new Date();
-    const todayISO = now.toISOString().split('T')[0];
-    const currentTime = now.toTimeString().split (' ')[0]; // HH:MM:SS format
+    const currentTime = now.toISOString();
 
     if (!isClockedIn) {
       const {error} = await supabase 
-      .from('time_records') 
+      .from('time_entries') 
       .insert([
-        { user_id: user.id, date: todayISO, clock_in: currentTime }
+        { user_id: user.id, clock_in: currentTime }
       ]);
 
       if (error) {
@@ -54,29 +53,25 @@ const Dashboard = () => {
       }
     } else {
       const {data: existing} = await supabase 
-      .from('time_records') 
+      .from('time_entries') 
       .select('*') 
       .eq('user_id', user.id) 
-      .eq('date', todayISO) 
+      .is('clock_out', null)
+      .order('clock_in', { ascending: false })
+      .limit(1)
       .single();
       
-      if (existing && existing.clock_in && !existing.clock_out) {
-        console.log('Already clocked in.');
+      if (error || !entry) {
+        console.error('No active clock-in found', error);
         return;
       }
 
-      const clockInTime = new Date(`${todayISO}T${data.clock_in}`);
-      const clockOutTime = now;
-
-      const hoursWorked = (clockOutTime - clockInTime) / (1000 * 60 * 60);
-
       await supabase 
-      .from('time_records') 
+      .from('time_entries') 
       .update({ 
-        clock_out: currentTime, 
-        hours_worked: hoursWorked 
+        clock_out: currentTime
       }) 
-      .eq('id', data.id);
+      .eq('id', entry.id);
     }
 
     const timeString = now.toLocaleTimeString();
@@ -115,16 +110,18 @@ const Dashboard = () => {
 
       const todayISO = new Date().toISOString().split('T')[0];
       
-      const { data: timeRecord, error } = await supabase
-        .from('time_records')
-        .select ('*')
+      const { data: activeEntry } = await supabase
+        .from('time_entries')
+        .select('*')
         .eq('user_id', user.id)
-        .eq('date', todayISO)
+        .is('clock_out', null)
+        .order('clock_in', { ascending: false })
+        .limit(1)
         .single();
 
-      if (timeRecord && timeRecord.clock_in && !timeRecord.clock_out) {
-        setIsClockedIn(true);
-      }
+        if (activeEntry) {
+          setIsClockedIn(true);
+        }
 
       // Sample schedule data (replace with Supabase data later)
       const scheduleDate = [
