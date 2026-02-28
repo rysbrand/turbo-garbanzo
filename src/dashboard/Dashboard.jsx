@@ -33,15 +33,58 @@ const Dashboard = () => {
     }
   };
 
-  const handleClockToggle = () => {
+  const handleClockToggle = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
     const now = new Date();
-    const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    const action = isClockedIn ? 'Clocked out' : 'Clocked in';
-    setClockMessage(`You ${action} at ${timeString}`);
+    const todayISO = now.toISOString().split('T')[0];
+    const currentTime = now.toTimeString().split (' ')[0]; // HH:MM:SS format
+
+    if (!isClockedIn) {
+      const {error} = await supabase 
+      .from('time_records') 
+      .insert([
+        { user_id: user.id, date: todayISO, clock_in: currentTime }
+      ]);
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+    } else {
+      const {data: existing} = await supabase 
+      .from('time_records') 
+      .select('*') 
+      .eq('user_id', user.id) 
+      .eq('date', todayISO) 
+      .single();
+      
+      if (existing && existing.clock_in && !existing.clock_out) {
+        console.log('Already clocked in.');
+        return;
+      }
+
+      const clockInTime = new Date(`${todayISO}T${data.clock_in}`);
+      const clockOutTime = now;
+
+      const hoursWorked = (clockOutTime - clockInTime) / (1000 * 60 * 60);
+
+      await supabase 
+      .from('time_records') 
+      .update({ 
+        clock_out: currentTime, 
+        hours_worked: hoursWorked 
+      }) 
+      .eq('id', data.id);
+    }
+
+    const timeString = now.toLocaleTimeString();
+    setClockMessage (`You ${isClockedIn ? 'clocked out' : 'clocked in'} at ${timeString}`);
     setIsClockedIn(!isClockedIn);
     setShowClockMessage(true);
     setTimeout(() => setShowClockMessage(false), 3000);
-  }
+  };
 
   useEffect(() => {
     async function requireAuth() {
@@ -67,11 +110,28 @@ const Dashboard = () => {
       const userName = storedUser?.firstName || session.user.email || 'User';
       setName(userName);
 
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const todayISO = new Date().toISOString().split('T')[0];
+      
+      const { data: timeRecord, error } = await supabase
+        .from('time_records')
+        .select ('*')
+        .eq('user_id', user.id)
+        .eq('date', todayISO)
+        .single();
+
+      if (timeRecord && timeRecord.clock_in && !timeRecord.clock_out) {
+        setIsClockedIn(true);
+      }
+
       // Sample schedule data (replace with Supabase data later)
       const scheduleDate = [
         { date: '2026-02-17', start: '9:00 AM', end: '5:00 PM' },
         { date: '2026-02-19', start: '10:00 AM', end: '6:00 PM' },
-        { date: '2026-02-25', start: '8:00 AM', end: '4:00 PM' }
+        { date: '2026-02-25', start: '8:00 AM', end: '4:00 PM' },
+        { date: '2026-03-03', start: '11:00 AM', end: '7:00 PM' }
       ];
 
       setSchedule(scheduleDate);
