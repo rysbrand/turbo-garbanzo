@@ -2,29 +2,52 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase/client.js';
 import { useNavigate } from 'react-router-dom';
-import { ensureProfile } from '../lib/ensureProfile';
+import { getProfile } from '../lib/ensureProfile';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false)
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSubmitting(true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    
-    if (error) {
-      setError(error.message);
-      return;
+  try {
+      const { data, error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInErr) {
+        setError(signInErr.message);
+        return;
+      }
+
+      const userId = data?.user?.id;
+      if (!userId) {
+        setError('Login succeeded but no user was returned.');
+        return;
+      }
+
+      const { profile, notFound, error: profileErr } = await getProfile(userId);
+
+      if (profileErr) {
+        setError(profileErr.message || 'Failed to fetch profile.');
+        return;
+      }
+
+      if (notFound) {
+        setError('Profile not found for this account. Please complete registration or contact support.');
+        return;
+      }
+      navigate('/dashboard');
+
+    } catch (err) {
+      setError(err?.message || 'Unexpected error during sign in.');
+    } finally {
+      setSubmitting(false);
     }
 
-    console.log('Logged in user:', data.user);
-    // calls function from ensureProfile.js
-    await ensureProfile();
-    navigate('/dashboard');
   };
 
   return (

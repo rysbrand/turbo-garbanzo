@@ -1,31 +1,24 @@
 
 import { supabase } from './supabase/client';
 
-export async function ensureProfile() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) 
-    return;
+  export async function getProfile(userid) {
+    try{
+      const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userid)
+      .maybeSingle();
 
-  // Check if a profile row already exists
-  const { data: existing, error: selErr } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('id', user.id)
-    .maybeSingle();
-
-  if (selErr) {
-    console.error('select profiles error:', selErr);
-    return;
+      if (error) {
+        return{error};
+      }
+  
+      if (!data) {
+        return { notFound: true };
+      }
+      return { profile: data };
+  } catch (err) {
+    return { error: err };
   }
 
-  // If missing, create it from Auth metadata
-  if (!existing) {
-    const md = user.user_metadata || {};
-    const { error: insErr } = await supabase.from('profiles').insert({
-      id: user.id,
-      first_name: md.first_name ?? null,
-      last_name:  md.last_name  ?? null,
-    });
-    if (insErr) console.error('insert profiles error:', insErr);
   }
-}

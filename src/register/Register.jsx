@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase/client.js';
-import { ensureProfile } from '../lib/ensureProfile';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -91,14 +90,6 @@ const Register = () => {
         }
         
       }
-
-    if (signUpError) {
-      setError(signUpError.message);
-      return;
-    }
-
-    // calls function from ensureProfile.js
-    await ensureProfile();
     
     navigate('/login');
   }
