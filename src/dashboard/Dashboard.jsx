@@ -52,7 +52,7 @@ const Dashboard = () => {
         return;
       }
     } else {
-      const {data: existing} = await supabase 
+      const {data: entry, error} = await supabase 
       .from('time_entries') 
       .select('*') 
       .eq('user_id', user.id) 
@@ -66,7 +66,7 @@ const Dashboard = () => {
         return;
       }
 
-      await supabase 
+      const { error: updateError } = await supabase 
       .from('time_entries') 
       .update({ 
         clock_out: currentTime
