@@ -84,10 +84,14 @@ const Availability = () => {
     if (!user) return;
 
     try {
-      await supabase
-        .from('availability')
-        .delete()
-        .eq('user_id', user.id);
+      const { error: deleteError } = await supabase
+      .from('availability')
+      .delete()
+      .eq('user_id', user.id);
+
+      if (deleteError) {
+        throw deleteError;
+      }
 
       const rows = Object.entries(availability)
         .filter(([_, value]) => value.enabled)
@@ -100,7 +104,8 @@ const Availability = () => {
         }));
 
       if (rows.length > 0) {
-        await supabase.from('availability').insert(rows);
+        const { error } = await supabase.from('availability').insert(rows);
+        if (error) throw error;
       }
 
       alert('Availability saved!');
