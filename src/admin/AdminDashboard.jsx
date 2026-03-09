@@ -1,17 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const StatChip = ({ label, value, tone = "indigo" }) => {
-  const toneMap = {
-    indigo: "bg-indigo-600/20 text-indigo-300 border-indigo-500/40",
-    green: "bg-emerald-600/20 text-emerald-300 border-emerald-500/40",
-    yellow: "bg-amber-600/20 text-amber-300 border-amber-500/40",
-    red: "bg-rose-600/20 text-rose-300 border-rose-500/40",
-    slate: "bg-slate-600/20 text-slate-300 border-slate-500/40",
-  };
+const StatChip = ({ label, value}) => {
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium ${toneMap[tone]}`}
+      className={`inline-flex items-center gap-1 rounded-full border px-3 py-0.5 text-xs font-medium `}
     >
       {label}: {value}
     </span>
@@ -133,8 +126,8 @@ const AdminDashboard = () => {
               </div>
               <ProgressBar value={Math.min(100, (stats.clockedIn / (stats.clockedIn + stats.late + stats.notScheduled || 1)) * 100)} />
               <div className="flex flex-wrap gap-2 pt-2">
-                <StatChip label="Late" value={stats.late} tone="yellow" />
-                <StatChip label="Not Scheduled" value={stats.notScheduled} tone="slate" />
+                <StatChip label="Late" value={stats.late} />
+                <StatChip label="Not Scheduled" value={stats.notScheduled}/>
               </div>
             </div>
           </Card>
@@ -174,9 +167,9 @@ const AdminDashboard = () => {
           >
             <div className="space-y-3">
               <div className="flex flex-wrap gap-2">
-                <StatChip label="Pending" value={stats.timeOff.pending} tone="yellow" />
-                <StatChip label="Approved" value={stats.timeOff.approved} tone="green" />
-                <StatChip label="Denied" value={stats.timeOff.denied} tone="red" />
+                <StatChip label="Pending" value={stats.timeOff.pending}/>
+                <StatChip label="Approved" value={stats.timeOff.approved}/>
+                <StatChip label="Denied" value={stats.timeOff.denied}/>
               </div>
               <p className="text-sm text-slate-300">
                 You have <span className="font-semibold">{stats.timeOff.pending}</span> pending request(s) to review.
