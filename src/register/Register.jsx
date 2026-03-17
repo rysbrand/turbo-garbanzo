@@ -18,6 +18,7 @@ const Register = () => {
   const validateEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
   const normalizePhone = (value) => value.replace(/\D/g, '');
 
+  //need to handle password regex/ validation (password needs to have special character, number, one upper case, one lower case... stuff like that)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -92,18 +93,13 @@ const Register = () => {
         
       }
 
-    if (signUpError) {
-      setError(signUpError.message);
-      return;
-    }
-
     // calls function from ensureProfile.js
     await ensureProfile();
     
     navigate('/login');
   }
   catch (err) {
-      console.log(err);
+      //console.log(err);
       setError(err?.message || 'Unexpected error while creating account.');
   } finally {
       setLoading(false);

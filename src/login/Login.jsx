@@ -10,6 +10,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  //need to implement try and catch around handle submit for auth in supabase
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -21,7 +22,7 @@ const Login = () => {
       return;
     }
 
-    console.log('Logged in user:', data.user);
+    //console.log('Logged in user:', data.user);
     // calls function from ensureProfile.js
     await ensureProfile();
     navigate('/dashboard');
@@ -74,9 +75,11 @@ const Login = () => {
             {/*Actions*/}
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2 text-slate-400">
+                {/* need to make checkbox functional yet */}
                 <input type="checkbox" className="rounded border-slate-600 text-indigo-500"/>
                 Remember me
               </label>
+              {/*need to make a page for forgot password*/}
               <a href="#" className="text-indigo-600 hover:text-indigo-300">
                 Forgot password?
               </a>
