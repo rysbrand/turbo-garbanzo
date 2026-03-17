@@ -11,12 +11,13 @@ import Timesheet from './timesheet/Timesheet';
 import Timeoff from './timeoff/Timeoff';
 import AdminDashboard from './admin/AdminDashboard';
 import ManagerApproval from './managerapproval/ManagerApproval';
+import Index from './index/Index';
 
 const App = () => {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="/login" element={<Login />} />
+      <Route path="/" element={<Index />} />
+       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/profile" element={<Profile />} />
