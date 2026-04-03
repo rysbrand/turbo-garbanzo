@@ -1,7 +1,5 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase/client.js';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, User } from 'lucide-react';
 
 const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -9,16 +7,29 @@ const defaultDayState = {
   enabled: false,
   start_time: '',
   end_time: '',
-  preference_level: 'High',
+  preference_level: 'Available',
   allDay: false
 };
 
+const preferenceOptions = [
+  { value: 'Available',  label: 'Can Work',      color: 'bg-green-600 border-transparent text-white',      dot: 'bg-green-400' },
+  { value: 'Limited',    label: 'Certain Hours', color: 'bg-yellow-500 border-transparent text-slate-900', dot: 'bg-yellow-400' },
+];
+
+const MIN_TIME = '07:00';
+const MAX_TIME = '20:00';
+
+const validateTime = (time) => {
+  if (!time) return false;
+  return time >= MIN_TIME && time <= MAX_TIME;
+};
+
 const Availability = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [availability, setAvailability] = useState({});
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [timeErrors, setTimeErrors] = useState({});
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -37,33 +48,55 @@ const Availability = () => {
     );
   }, []);
 
-  const navItems = [
-    { name: 'Dashboard', path: '/dashboard' },
-    { name: 'Schedule', path: '/schedule' },
-    { name: 'Availability', path: '/availability' },
-    { name: 'Pay', path: '/pay' },
-    { name: 'Timesheet', path: '/timesheet' }
-  ];
-
   const handleToggleDay = (day) => {
     setAvailability(prev => ({
       ...prev,
-      [day]: {
-        ...prev[day],
-        enabled: !prev[day].enabled
-      }
+      [day]: { ...prev[day], enabled: !prev[day].enabled }
     }));
+    // Clear errors when disabling
+    setTimeErrors(prev => ({ ...prev, [day]: null }));
   };
 
   const handleChange = (day, field, value) => {
-    setAvailability(prev => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [field]: value
-      }
-    }));
-  };
+  setAvailability(prev => {
+    const updatedDay = { ...prev[day], [field]: value };
+
+    // Automatically set allDay if preference is "Available"
+    if (field === 'preference_level' && value === 'Available') {
+      updatedDay.allDay = true;
+      updatedDay.start_time = MIN_TIME;
+      updatedDay.end_time = MAX_TIME;
+    }
+
+    // If preference is changed away from "Available", don't force allDay
+    if (field === 'preference_level' && value !== 'Available' && updatedDay.allDay) {
+      updatedDay.allDay = false;
+      updatedDay.start_time = '';
+      updatedDay.end_time = '';
+    }
+
+    return { ...prev, [day]: updatedDay };
+  });
+
+  // Validate on time change
+  if (field === 'start_time' || field === 'end_time') {
+    const updated = {
+      ...availability[day],
+      [field]: value
+    };
+    const errors = {};
+    if (updated.start_time && !validateTime(updated.start_time)) {
+      errors.start = 'Please enter a time between 7am and 8pm Central Time';
+    }
+    if (updated.end_time && !validateTime(updated.end_time)) {
+      errors.end = 'Please enter a time between 7am and 8pm Central Time';
+    }
+    if (updated.start_time && updated.end_time && updated.start_time >= updated.end_time) {
+      errors.range = 'End time must be after start time';
+    }
+    setTimeErrors(prev => ({ ...prev, [day]: errors }));
+  }
+};
 
   const handleAllDayToggle = (day) => {
     setAvailability(prev => {
@@ -73,25 +106,37 @@ const Availability = () => {
         [day]: {
           ...prev[day],
           allDay: isAllDay,
-          start_time: isAllDay ? '00:00' : '',
-          end_time: isAllDay ? '23:59' : ''
+          start_time: isAllDay ? '07:00' : '',
+          end_time: isAllDay ? '20:00' : ''
         }
       };
     });
+    setTimeErrors(prev => ({ ...prev, [day]: null }));
   };
 
   const handleSave = async () => {
     if (!user) return;
 
+    // Check for any active errors before saving
+    const hasErrors = Object.entries(availability).some(([day, val]) => {
+      if (!val.enabled || val.allDay) return false;
+      const errs = timeErrors[day];
+      return errs && (errs.start || errs.end || errs.range);
+    });
+
+    if (hasErrors) {
+      alert('Please fix the time errors before saving.');
+      return;
+    }
+
+    setSaving(true);
     try {
       const { error: deleteError } = await supabase
-      .from('availability')
-      .delete()
-      .eq('user_id', user.id);
+        .from('availability')
+        .delete()
+        .eq('user_id', user.id);
 
-      if (deleteError) {
-        throw deleteError;
-      }
+      if (deleteError) throw deleteError;
 
       const rows = Object.entries(availability)
         .filter(([_, value]) => value.enabled)
@@ -108,179 +153,201 @@ const Availability = () => {
         if (error) throw error;
       }
 
-      alert('Availability saved!');
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
     } catch (err) {
       alert('Error saving availability: ' + err.message);
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      navigate('/');
-    } catch (err) {
-      alert('Sign out failed: ' + err.message);
-    }
-  };
+  const enabledCount = Object.values(availability).filter(d => d.enabled).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white flex flex-col">
-      
-      {/* Header */}
-      <header className="w-full bg-slate-900">
-        <div className="max-w-4xl mx-auto flex items-center justify-between p-4">
-          
-          <Link to="/profile" className="flex items-center gap-4">
-            <User className="h-10 w-10 rounded-full border-2 border-indigo-500 hover:scale-105 transition cursor-pointer" />
-          </Link>
-          
-          <h1 className="text-xl sm:text-3xl font-semibold text-center">
-            Company Name / Availability
-          </h1>
+    <div className="space-y-3 pb-6">
 
-          <Menu
-            className="cursor-pointer hover:text-indigo-400 transition"
-            onClick={() => setMenuOpen(true)}
-          />
-        </div>
-      </header>
-
-      {/* Overlay Menu */}
-      {menuOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40"
-          onClick={() => setMenuOpen(false)}
-        />
-      )}
-
-      {/* Side Menu */}
-      <div
-        className={`fixed top-0 right-0 h-full w-64 bg-slate-900 z-50 transform transition-transform duration-300 flex flex-col 
-          ${menuOpen ? 'translate-x-0' : 'translate-x-full'}`}
-      >
-
-        <div className="flex justify-end p-4">
-          <X
-            className="cursor-pointer hover:text-indigo-400"
-            onClick={() => setMenuOpen(false)}
-          />
-        </div>
-
-        <nav className="flex flex-col px-6 space-y-3 flex-1">
-          {navItems.map(item => (
-            <Link
-              key={item.name}
-              to={item.path}
-              onClick={() => setMenuOpen(false)}
-              className={`py-2 px-3 rounded-lg transition
-                ${location.pathname === item.path
-                  ? 'bg-indigo-600 text-white'
-                  : 'hover:bg-slate-800 text-slate-300'
-                }`}
-            >
-              {item.name}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="p-6">
-          <button
-            onClick={handleSignOut}
-            className="w-full py-2 px-4 bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
-          >
-            Sign Out
-          </button>
-        </div>
-
+      {/* Page Header */}
+      <div className="mb-4">
+        <h2 className="text-2xl font-bold text-white">Availability</h2>
+        <p className="text-slate-400 text-sm mt-1">
+          {enabledCount === 0
+            ? 'No days selected — toggle a day to set your hours.'
+            : `${enabledCount} day${enabledCount > 1 ? 's' : ''} selected`}
+        </p>
       </div>
 
-      {/* Main Content */}
-      <main className="flex-1 w-full">
-        <div className="max-w-4xl mx-auto p-6 space-y-6">
+      {/* Legend */}
+      <div className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 mb-2">
+        <p className="text-xs text-slate-400 font-medium mb-2 uppercase tracking-wide">Availability Key</p>
+        <div className="flex flex-wrap gap-3">
+          {preferenceOptions.map(opt => (
+            <div key={opt.value} className="flex items-center gap-2">
+              <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${opt.dot}`} />
+              <span className="text-sm text-slate-300">
+                <span className="font-medium">{opt.label}</span>
+                {opt.value === 'Available' && <span className="text-slate-500"> — free all day</span>}
+                {opt.value === 'Limited' && <span className="text-slate-500"> — specific hours only</span>}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
 
-          {daysOfWeek.map(day => (
+      {/* Day Cards */}
+      {daysOfWeek.map(day => {
+        const dayData = availability[day] || defaultDayState;
+        const isEnabled = dayData.enabled;
+        const errors = timeErrors[day] || {};
+        const hasError = errors.start || errors.end || errors.range;
+
+        return (
           <div
             key={day}
-            className="bg-slate-700 p-4 rounded-lg flex flex-wrap items-center justify-center gap-4"
+            className={`rounded-xl border transition-all duration-200
+              ${isEnabled
+                ? hasError
+                  ? 'bg-slate-700 border-red-500/50 shadow-lg shadow-red-900/10'
+                  : 'bg-slate-700 border-indigo-500/50 shadow-lg shadow-indigo-900/20'
+                : 'bg-slate-800 border-slate-700'
+              }`}
           >
-
-            {/* Day Checkbox */}
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={availability[day]?.enabled || false}
-                onChange={() => handleToggleDay(day)}
-              />
-              <span className="text-lg font-medium">{day}</span>
-            </label>
-
-            {/* Start Time */}
-            <input
-              type="time"
-              value={availability[day]?.start_time || ''}
-              onChange={(e) =>
-                handleChange(day, 'start_time', e.target.value)
-              }
-              disabled={!availability[day]?.enabled}
-              className={`bg-slate-800 border border-slate-600 p-2 rounded text-white w-36
-                ${!availability[day]?.enabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-            />
-
-            <span>to</span>
-
-            {/* End Time */}
-            <input
-              type="time"
-              value={availability[day]?.end_time || ''}
-              onChange={(e) =>
-                handleChange(day, 'end_time', e.target.value)
-              }
-              disabled={!availability[day]?.enabled}
-              className={`bg-slate-800 border border-slate-600 p-2 rounded text-white w-36
-                ${!availability[day]?.enabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-            />
-
-            {/* All Day */}
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={availability[day]?.allDay || false}
-                onChange={() => handleAllDayToggle(day)}
-                disabled={!availability[day]?.enabled}
-              />
-              <span>All Day</span>
-            </label>
-
-            {/* Preference */}
-            <select
-              value={availability[day]?.preference_level || 'High'}
-              onChange={(e) =>
-                handleChange(day, 'preference_level', e.target.value)
-              }
-              className="bg-slate-800 border border-slate-600 p-2 rounded text-white"
+            {/* Day Toggle Row */}
+            <button
+              onClick={() => handleToggleDay(day)}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-xl"
             >
-              <option value="High">High</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
-            </select>
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-5 rounded-full transition-colors duration-200 flex items-center px-0.5
+                  ${isEnabled ? 'bg-indigo-600' : 'bg-slate-600'}`}>
+                  <div className={`w-4 h-4 rounded-full bg-white shadow transition-transform duration-200
+                    ${isEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                </div>
+                <span className={`text-base font-semibold ${isEnabled ? 'text-white' : 'text-slate-400'}`}>
+                  {day}
+                </span>
+              </div>
 
+              {isEnabled && dayData.allDay && (
+                <span className="text-xs text-indigo-300 font-medium">All Day</span>
+              )}
+              {isEnabled && !dayData.allDay && dayData.start_time && dayData.end_time && !hasError && (
+                <span className="text-xs text-slate-400">
+                  {dayData.start_time} – {dayData.end_time}
+                </span>
+              )}
+              {isEnabled && hasError && (
+                <span className="text-xs text-red-400">Fix time errors</span>
+              )}
+            </button>
+
+            {/* Expanded Controls */}
+            {isEnabled && (
+              <div className="px-4 pb-4 space-y-4 border-t border-slate-600/50 pt-3">
+
+                {/* Time Row */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-start gap-3">
+                  {/* From */}
+                  <div className="flex flex-col gap-1 w-full sm:w-auto">
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs text-slate-400 w-10 shrink-0">From</label>
+                      <input
+                        type="time"
+                        value={dayData.start_time || ''}
+                        min={MIN_TIME}
+                        max={MAX_TIME}
+                        onChange={(e) => handleChange(day, 'start_time', e.target.value)}
+                        disabled={dayData.allDay}
+                        className={`flex-1 sm:flex-none bg-slate-900 border px-3 py-2 rounded-lg text-white text-sm w-full sm:w-36 focus:outline-none transition
+                          ${dayData.allDay ? 'opacity-40 cursor-not-allowed border-slate-600' : errors.start ? 'border-red-500 focus:border-red-400' : 'border-slate-600 focus:border-indigo-500'}`}
+                      />
+                    </div>
+                    {errors.start && (
+                      <p className="text-xs text-red-400 ml-12">{errors.start}</p>
+                    )}
+                  </div>
+
+                  {/* To */}
+                  <div className="flex flex-col gap-1 w-full sm:w-auto">
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs text-slate-400 w-10 shrink-0">To</label>
+                      <input
+                        type="time"
+                        value={dayData.end_time || ''}
+                        min={MIN_TIME}
+                        max={MAX_TIME}
+                        onChange={(e) => handleChange(day, 'end_time', e.target.value)}
+                        disabled={dayData.allDay}
+                        className={`flex-1 sm:flex-none bg-slate-900 border px-3 py-2 rounded-lg text-white text-sm w-full sm:w-36 focus:outline-none transition
+                          ${dayData.allDay ? 'opacity-40 cursor-not-allowed border-slate-600' : errors.end ? 'border-red-500 focus:border-red-400' : 'border-slate-600 focus:border-indigo-500'}`}
+                      />
+                    </div>
+                    {errors.end && (
+                      <p className="text-xs text-red-400 ml-12">{errors.end}</p>
+                    )}
+                  </div>
+
+                  {/* All Day */}
+                  <button
+                    onClick={() => handleAllDayToggle(day)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition border
+                      ${dayData.allDay
+                        ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300'
+                        : 'bg-slate-900 border-slate-600 text-slate-400 hover:border-slate-500'
+                      }`}
+                  >
+                    {dayData.allDay ? '✓ All Day' : 'All Day'}
+                  </button>
+                </div>
+
+                {/* Range error */}
+                {errors.range && (
+                  <p className="text-xs text-red-400">{errors.range}</p>
+                )}
+
+                {/* Preference Level */}
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs text-slate-400">Status</span>
+                  <div className="flex flex-wrap gap-2">
+                    {preferenceOptions.map(opt => (
+                      <button
+                        key={opt.value}
+                        onClick={() => handleChange(day, 'preference_level', opt.value)}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition border
+                          ${dayData.preference_level === opt.value
+                            ? opt.color
+                            : 'bg-slate-900 border-slate-600 text-slate-400 hover:border-slate-500'
+                          }`}
+                      >
+                        <span className={`w-2 h-2 rounded-full ${opt.dot}`} />
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+            )}
           </div>
-        ))}
+        );
+      })}
 
-          <button
-            onClick={handleSave}
-            className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition"
-          >
-            Save Availability
-          </button>
-
-        </div>
-      </main>
-        
-      {/* Footer */}
-      <footer className="w-full bg-slate-900 p-4 text-center text-sm text-slate-500">
-        &copy; {new Date().getFullYear()} Company Name. All rights reserved.
-      </footer>
+      {/* Save Button */}
+      <div className="pt-2">
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className={`w-full py-3 px-4 rounded-xl font-semibold text-white transition
+            ${saved
+              ? 'bg-green-600'
+              : saving
+                ? 'bg-indigo-800 opacity-60 cursor-not-allowed'
+                : 'bg-indigo-600 hover:bg-indigo-700 active:scale-95'
+            }`}
+        >
+          {saved ? '✓ Saved!' : saving ? 'Saving...' : 'Save Availability'}
+        </button>
+      </div>
 
     </div>
   );
