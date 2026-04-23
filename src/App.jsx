@@ -3,6 +3,8 @@ import { Routes, Route, Navigate, Outlet, Link, useNavigate, useLocation } from 
 import { Menu, X, User } from 'lucide-react';
 import { supabase } from './lib/supabase/client.js';
 import ProtectedRoute from './lib/ProtectedRoute.jsx';
+import ForgotPassword from './forgotpassword/ForgotPassword.jsx';
+import ResetPassword from './resetpassword/ResetPassword.jsx';
 
 import Login from './login/Login';
 import Register from './register/Register';
