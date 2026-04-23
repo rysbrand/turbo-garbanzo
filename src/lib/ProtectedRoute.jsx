@@ -15,7 +15,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
             if(session) {
                 const {data: profile } = await supabase
                     .from('profiles')
-                    .select('role')
+                    .select('user_role')
                     .eq('id', session.user.id)
                     .maybeSingle();
 
@@ -39,7 +39,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
     if (!session) {
         return <Navigate to="/login" replace/>;
     }
-
+    //role ids: 1 = employee, 2 = scheduling manger, 3 = system admin
     if (allowedRoles && !allowedRoles.includes(role)) {
         return <Navigate to="/dashboard" replace />;
     }

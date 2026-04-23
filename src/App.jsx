@@ -155,14 +155,14 @@ const App = () => {
         </Route>
       </Route>
       {/* Manager-only routes */}
-      <Route element={<ProtectedRoute allowedRoles={['Manager', 'Admin']} />}>
+      <Route element={<ProtectedRoute allowedRoles={['2', '3']} />}>
         <Route element={<Layout />}>
           <Route path="/managerapproval" element={<ManagerApproval />} />
         </Route>
       </Route>
 
       {/* Admin-only routes */}
-      <Route element={<ProtectedRoute allowedRoles={['Admin']} />}>
+      <Route element={<ProtectedRoute allowedRoles={['3']} />}>
         <Route element={<Layout />}>
           <Route path="/admin" element={<AdminDashboard />} />
         </Route>
