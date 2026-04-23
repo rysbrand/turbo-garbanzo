@@ -288,7 +288,7 @@ const Availability = () => {
                         min={MIN_TIME}
                         max={MAX_TIME}
                         onChange={(e) => handleChange(day, 'start_time', e.target.value)}
-                        disabled={dayData.allDay || dayData.preferency_level === 'Unavailble'}
+                        disabled={dayData.allDay || dayData.preference_level === 'Unavailble'}
                         className={`flex-1 sm:flex-none bg-slate-900 border px-3 py-2 rounded-lg text-white text-sm w-full sm:w-36 focus:outline-none transition
                           ${dayData.allDay || dayData.preference_level === 'Unavailable'
                             ? 'opacity-40 cursor-not-allowed border-slate-600' 
@@ -311,9 +311,12 @@ const Availability = () => {
                         min={MIN_TIME}
                         max={MAX_TIME}
                         onChange={(e) => handleChange(day, 'end_time', e.target.value)}
-                        disabled={dayData.allDay}
+                        disabled={dayData.allDay || dayData.preference_level === 'Unavailable'}
                         className={`flex-1 sm:flex-none bg-slate-900 border px-3 py-2 rounded-lg text-white text-sm w-full sm:w-36 focus:outline-none transition
-                          ${dayData.allDay ? 'opacity-40 cursor-not-allowed border-slate-600' : errors.end ? 'border-red-500 focus:border-red-400' : 'border-slate-600 focus:border-indigo-500'}`}
+                          ${dayData.allDay || dayData.preference_level === 'Unavailable' 
+                            ? 'opacity-40 cursor-not-allowed border-slate-600' 
+                            : errors.end ? 'border-red-500 focus:border-red-400' 
+                            : 'border-slate-600 focus:border-indigo-500'}`}
                       />
                     </div>
                     {errors.end && (
