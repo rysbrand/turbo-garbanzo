@@ -12,8 +12,9 @@ const defaultDayState = {
 };
 
 const preferenceOptions = [
-  { value: 'Available',  label: 'Can Work',      color: 'bg-green-600 border-transparent text-white',      dot: 'bg-green-400' },
-  { value: 'Limited',    label: 'Certain Hours', color: 'bg-yellow-500 border-transparent text-slate-900', dot: 'bg-yellow-400' },
+  { value: 'Available',   label: 'Can Work',           color: 'bg-green-600 border-transparent text-white',      dot: 'bg-green-400' },
+  { value: 'Preferred',   label: 'Prefer Not to Work', color: 'bg-yellow-500 border-transparent text-slate-900', dot: 'bg-yellow-400' },
+  { value: 'Unavailable', label: "Can't Work",         color: 'bg-red-600 border-transparent text-white',        dot: 'bg-red-400' },
 ];
 
 const MIN_TIME = '07:00';
@@ -31,21 +32,47 @@ const Availability = () => {
   const [saved, setSaved] = useState(false);
   const [timeErrors, setTimeErrors] = useState({});
 
+  //changing this to fetch user and their availability from supabase
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndAvailability = async () => {
       try {
         const { data, error } = await supabase.auth.getUser();
         if (error) throw error;
-        setUser(data.user);
+        const currentUser = data.user;
+        setUser(currentUser);
+
+        const initial = Object.fromEntries(
+          daysOfWeek.map(day => [day, { ...defaultDayState}])
+        );
+
+        const {data: rows, error: fetchError } = await supabase
+          .from('availability')
+          .select('*')
+          .eq('user_id', currentUser.id);
+
+        if (fetchError) throw fetchError;
+
+        //set days with saved data where exists
+        if (rows && rows.length >0 ) {
+          rows.forEach(row => {
+            initial[row.day_of_week] = {
+              enabled: true,
+              start_time: row.start_time || '',
+              end_time: row.end_time || '',
+              preference_level: row.preference_level || 'Available',
+              allDay: row.start_time === MIN_TIME && row.end_time === MAX_TIME
+            };
+          });
+        }
+
+        setAvailability(initial);
+
       } catch (err) {
-        console.error('Failed to fetch user:', err.message);
+        console.error('Failed to load availability:', err.message);
       }
     };
-    fetchUser();
+    fetchUserAndAvailability();
 
-    setAvailability(
-      Object.fromEntries(daysOfWeek.map(day => [day, { ...defaultDayState }]))
-    );
   }, []);
 
   const handleToggleDay = (day) => {
@@ -61,19 +88,23 @@ const Availability = () => {
   setAvailability(prev => {
     const updatedDay = { ...prev[day], [field]: value };
 
-    // Automatically set allDay if preference is "Available"
-    if (field === 'preference_level' && value === 'Available') {
+  //prevents user from setting hours if worker unavailable or prefers not to work
+  if (field === 'preference_level') {
+    if (value === 'Available') {
       updatedDay.allDay = true;
       updatedDay.start_time = MIN_TIME;
       updatedDay.end_time = MAX_TIME;
-    }
-
-    // If preference is changed away from "Available", don't force allDay
-    if (field === 'preference_level' && value !== 'Available' && updatedDay.allDay) {
+    } else if (value === 'Unavailable') {
+      updatedDay.allDay = false;
+      updatedDay.start_time = '';
+      updatedDay.end_time = '';
+    } else if (value === 'Preferred') {
       updatedDay.allDay = false;
       updatedDay.start_time = '';
       updatedDay.end_time = '';
     }
+  }
+    
 
     return { ...prev, [day]: updatedDay };
   });
@@ -257,9 +288,12 @@ const Availability = () => {
                         min={MIN_TIME}
                         max={MAX_TIME}
                         onChange={(e) => handleChange(day, 'start_time', e.target.value)}
-                        disabled={dayData.allDay}
+                        disabled={dayData.allDay || dayData.preferency_level === 'Unavailble'}
                         className={`flex-1 sm:flex-none bg-slate-900 border px-3 py-2 rounded-lg text-white text-sm w-full sm:w-36 focus:outline-none transition
-                          ${dayData.allDay ? 'opacity-40 cursor-not-allowed border-slate-600' : errors.start ? 'border-red-500 focus:border-red-400' : 'border-slate-600 focus:border-indigo-500'}`}
+                          ${dayData.allDay || dayData.preference_level === 'Unavailable'
+                            ? 'opacity-40 cursor-not-allowed border-slate-600' 
+                            : errors.start ? 'border-red-500 focus:border-red-400' :
+                             'border-slate-600 focus:border-indigo-500'}`}
                       />
                     </div>
                     {errors.start && (
