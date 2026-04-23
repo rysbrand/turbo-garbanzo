@@ -1,13 +1,25 @@
-import React, { useState } from 'react';
-import { userNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase/client';
 
 const ResetPassword = () => {
     const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = userState('');
-    const [submitting, setSubmitting] = userState(false);
-    const [error, setError] = userState('');
-    const navigate = userNavigate();
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+      // User has arrived via the reset link, we're ready
+        console.log('Password recovery session ready');
+        }
+        });
+          return () => subscription.unsubscribe();
+    }, []);
+
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();

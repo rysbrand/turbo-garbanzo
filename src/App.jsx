@@ -143,6 +143,8 @@ const App = () => {
       <Route path="/" element={<Index />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/forgotpassword" element={<ForgotPassword />} />
+      <Route path="/resetpassword" element={<ResetPassword />} />
 
       {/* Routes with Layout */}
       <Route element={<ProtectedRoute />}>
@@ -157,14 +159,14 @@ const App = () => {
         </Route>
       </Route>
       {/* Manager-only routes */}
-      <Route element={<ProtectedRoute allowedRoles={['2', '3']} />}>
+      <Route element={<ProtectedRoute allowedRoles={[2, 3]} />}>
         <Route element={<Layout />}>
           <Route path="/managerapproval" element={<ManagerApproval />} />
         </Route>
       </Route>
 
       {/* Admin-only routes */}
-      <Route element={<ProtectedRoute allowedRoles={['3']} />}>
+      <Route element={<ProtectedRoute allowedRoles={[3]} />}>
         <Route element={<Layout />}>
           <Route path="/admin" element={<AdminDashboard />} />
         </Route>

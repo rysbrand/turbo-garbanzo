@@ -1,10 +1,11 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import { supabase } from '../lib/supabase/client';
-import { LucideFileChartColumnIncreasing, User } from 'lucide-react';
+import {User} from 'lucide-react';
+
 
 const Profile = () => {
   const [profile, setProfile] = useState(null);
-  const [email, setEmail] = useSate('');
+  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [firstName, setFirstName] = useState('');
@@ -64,9 +65,9 @@ const Profile = () => {
           first_name: firstName.trim(),
           last_name: lastName.trim(),
           username: username.trim(),
-          updated_at: newDate().toISOString(),
+          updated_at: new Date().toISOString(),
         })
-        .eq('id, user.id');
+        .eq('id', user.id);
 
       if (error) throw error;
 
