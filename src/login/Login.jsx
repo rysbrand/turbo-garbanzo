@@ -7,18 +7,9 @@ import { getProfile } from '../lib/ensureProfile';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false)
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const savedEmail = localStorage.getItem('rememberedEmail');
-    if (savedEmail) {
-      setEmail(savedEmail);
-      setRememberMe(true);
-    }
-  }, []);
 
   //need to implement try and catch around handle submit for auth in supabase
   const handleSubmit = async (e) => {
@@ -26,7 +17,7 @@ const Login = () => {
     setError('');
     setSubmitting(true);
 
-    try {
+  try {
       const { data, error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
       if (signInErr) {
         setError(signInErr.message);
@@ -37,12 +28,6 @@ const Login = () => {
       if (!userId) {
         setError('Login succeeded but no user was returned.');
         return;
-      }
-
-      if (rememberMe) {
-        localStorage.setItem('rememberedEmail', email);
-      } else {
-        localStorage.removeItem('rememberedEmail');
       }
 
       const { profile, notFound, error: profileErr } = await getProfile(userId);
@@ -113,13 +98,10 @@ const Login = () => {
             {/*Actions*/}
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2 text-slate-400">
-                <input type="checkbox" 
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="rounded border-slate-600 text-indigo-500"/>
+                {/* need to make checkbox functional yet */}
+                <input type="checkbox" className="rounded border-slate-600 text-indigo-500"/>
                 Remember me
               </label>
-
               <Link to="/forgotpassword" className="text-indigo-600 hover:text-indigo-300">
                 Forgot password?
               </Link>
