@@ -101,9 +101,9 @@ const Dashboard = () => {
       if (activeEntry) setIsClockedIn(true);
 
       const scheduleDate = [
-        { date: '2026-04-17', start: '9:00 AM', end: '5:00 PM' },
-        { date: '2026-05-19', start: '10:00 AM', end: '6:00 PM' },
-        { date: '2026-05-25', start: '8:00 AM', end: '4:00 PM' },
+        { date: '2026-02-17', start: '9:00 AM', end: '5:00 PM' },
+        { date: '2026-02-19', start: '10:00 AM', end: '6:00 PM' },
+        { date: '2026-02-25', start: '8:00 AM', end: '4:00 PM' },
         { date: '2026-04-03', start: '11:00 AM', end: '7:00 PM' }
       ];
 
