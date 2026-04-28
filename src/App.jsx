@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, User } from 'lucide-react';
+import { Menu, X, User, Bell} from 'lucide-react';
 import { supabase } from './lib/supabase/client.js';
 import ProtectedRoute from './lib/ProtectedRoute.jsx';
 import ForgotPassword from './forgotpassword/ForgotPassword.jsx';
@@ -25,22 +25,54 @@ import Index from './index/Index';
 const Layout = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [userRole, setUserRole] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const unreadCount = notifications.filter(n => !n.read).length;
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    const fetchRole = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data } = await supabase
-        .from('profiles')
-        .select('user_role')
-        .eq('id', user.id)
-        .maybeSingle();
-      setUserRole(data?.user_role ?? null);
-    };
-    fetchRole();
-  }, []);
+  const fetchRoleAndNotifications = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('user_role')
+      .eq('id', user.id)
+      .maybeSingle();
+    setUserRole(profileData?.user_role ?? null);
+
+    const { data: notifData } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(20);
+    setNotifications(notifData || []);
+  };
+
+  fetchRoleAndNotifications();
+}, []);
+
+  const markAsRead = async (id) => {
+    await supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('id', id);
+    setNotifications(prev =>
+      prev.map(n => n.id === id ? { ...n, read: true } : n)
+    );
+  };
+
+  const markAllAsRead = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    await supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('user_id', user.id);
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  };
 
 
   const navItems = [
@@ -76,6 +108,81 @@ const Layout = () => {
           <h1 className="flex-1 text-center text-base sm:text-xl md:text-2xl font-semibold truncate px-2">
             Company Name
           </h1>
+
+          {/* Notification Bell */}
+<div className="relative flex-shrink-0">
+  <button
+    onClick={() => setShowNotifications(!showNotifications)}
+    className="relative p-1"
+    aria-label="Notifications"
+  >
+    <Bell className="h-6 w-6 hover:text-indigo-400 transition" />
+    {unreadCount > 0 && (
+      <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-medium">
+        {unreadCount > 9 ? '9+' : unreadCount}
+      </span>
+    )}
+  </button>
+
+    {/* Notification Dropdown */}
+    {showNotifications && (
+      <>
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setShowNotifications(false)}
+        />
+        <div className="absolute right-0 top-10 w-80 bg-slate-900 border border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
+            <span className="font-medium text-white text-sm">Notifications</span>
+            {unreadCount > 0 && (
+              <button
+                onClick={markAllAsRead}
+                className="text-xs text-indigo-400 hover:text-indigo-300"
+              >
+                Mark all read
+              </button>
+            )}
+          </div>
+
+          <div className="max-h-96 overflow-y-auto">
+            {notifications.length === 0 ? (
+              <p className="text-slate-400 text-sm text-center py-6">No notifications</p>
+            ) : (
+              notifications.map(n => (
+                <div
+                  key={n.id}
+                  onClick={() => markAsRead(n.id)}
+                  className={`px-4 py-3 border-b border-slate-800 cursor-pointer hover:bg-slate-800 transition
+                    ${!n.read ? 'bg-slate-800/60' : ''}`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className={`text-sm font-medium ${!n.read ? 'text-white' : 'text-slate-400'}`}>
+                        {n.title}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-0.5">{n.message}</p>
+                      <p className="text-xs text-slate-600 mt-1">
+                        {new Date(n.created_at).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true
+                        })}
+                      </p>
+                    </div>
+                    {!n.read && (
+                      <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0 mt-1" />
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </>
+    )}
+  </div>
 
           {/* Hamburger — visible on all screen sizes */}
           <button
