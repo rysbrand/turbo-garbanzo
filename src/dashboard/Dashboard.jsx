@@ -100,25 +100,72 @@ const Dashboard = () => {
 
       if (activeEntry) setIsClockedIn(true);
 
-      const scheduleDate = [
-        { date: '2026-02-17', start: '9:00 AM', end: '5:00 PM' },
-        { date: '2026-02-19', start: '10:00 AM', end: '6:00 PM' },
-        { date: '2026-02-25', start: '8:00 AM', end: '4:00 PM' },
-        { date: '2026-04-03', start: '11:00 AM', end: '7:00 PM' }
-      ];
+      // const scheduleDate = [
+      //   { date: '2026-02-17', start: '9:00 AM', end: '5:00 PM' },
+      //   { date: '2026-02-19', start: '10:00 AM', end: '6:00 PM' },
+      //   { date: '2026-02-25', start: '8:00 AM', end: '4:00 PM' },
+      //   { date: '2026-04-03', start: '11:00 AM', end: '7:00 PM' }
+      // ];
 
-      setSchedule(scheduleDate);
+      // setSchedule(scheduleDate);
+
+      // const today = new Date();
+      // const day = today.getDate();
+      // const year = today.getFullYear();
+      // const month = today.getMonth();
+      // const formattedTodayISO = today.toISOString().split('T')[0];
+
+      // const todayShift = scheduleDate.find(shift => shift.date === formattedTodayISO);
+      // const formattedDate = today.toLocaleDateString('en-US', {
+      //   month: 'long', day: 'numeric', year: 'numeric'
+      // });
+
+      // const welcome = todayShift
+      //   ? `Welcome ${userName}, you work today ${formattedDate} from ${todayShift.start} to ${todayShift.end}`
+      //   : `Welcome ${userName}, you do not work today (${formattedDate})`;
+
+      // setWelcomeMessage(welcome);
 
       const today = new Date();
       const day = today.getDate();
       const year = today.getFullYear();
       const month = today.getMonth();
       const formattedTodayISO = today.toISOString().split('T')[0];
-
-      const todayShift = scheduleDate.find(shift => shift.date === formattedTodayISO);
       const formattedDate = today.toLocaleDateString('en-US', {
         month: 'long', day: 'numeric', year: 'numeric'
       });
+
+      const { data: scheduleData, error: scheduleError } = await supabase
+        .from ('schedules')
+        .select('*')
+        .eq('user_id', user.id)
+        .gte('shift_date', formattedTodayISO)
+        .order('shift_date', {ascending: true });
+
+      if (scheduleError) {
+        console.error('error fetching schedule:', scheduleError);
+      }
+
+      const formatTime = (timeStr) => {
+        if (!timeStr) return '';
+        const [hours, minutes] = timeStr.split(':');
+        const d = new Date();
+        d.setHours(parseInt(hours), parseInt(minutes));
+        return d.toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+        hour12: true });
+      };
+
+      const shifts = (scheduleData || []).map(shift => ({
+        date: shift.shift_date,
+        start: formatTime(shift.start_time),
+        end: formatTime(shift.end_time),
+      }));
+
+      setSchedule(shifts);
+
+      const todayShift = shifts.find(shift => shift.date === formattedTodayISO);
 
       const welcome = todayShift
         ? `Welcome ${userName}, you work today ${formattedDate} from ${todayShift.start} to ${todayShift.end}`
