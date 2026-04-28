@@ -73,18 +73,21 @@ const Dashboard = () => {
       const session = await requireAuth();
       if (!session) return;
 
-      let storedUser;
-      try {
-        storedUser = JSON.parse(localStorage.getItem('user'));
-      } catch {
-        storedUser = null;
-      }
-
-      const userName = storedUser?.first_name || session.user.email || 'User';
-      setName(userName);
-
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('first_name')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+      }
+
+      const userName = profile?.first_name || user.email || 'User';
+      setName(userName);
 
       const { data: activeEntry } = await supabase
         .from('time_entries')
