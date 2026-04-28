@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { Routes, Route, Navigate, Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X, User } from 'lucide-react';
 import { supabase } from './lib/supabase/client.js';
+import ProtectedRoute from './lib/ProtectedRoute.jsx';
+import ForgotPassword from './forgotpassword/ForgotPassword.jsx';
+import ResetPassword from './resetpassword/ResetPassword.jsx';
 
 import Login from './login/Login';
 import Register from './register/Register';
@@ -140,18 +143,33 @@ const App = () => {
       <Route path="/" element={<Index />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/forgotpassword" element={<ForgotPassword />} />
+      <Route path="/resetpassword" element={<ResetPassword />} />
 
       {/* Routes with Layout */}
-      <Route element={<Layout />}>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/schedule" element={<Schedule />} />
-        <Route path="/availability" element={<Availability />} />
-        <Route path="/pay" element={<Pay />} />
-        <Route path="/timesheet" element={<Timesheet />} />
-        <Route path="/timeoff" element={<Timeoff />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/managerapproval" element={<ManagerApproval />} />
+      <Route element={<ProtectedRoute />}>
+        <Route element={<Layout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/schedule" element={<Schedule />} />
+          <Route path="/availability" element={<Availability />} />
+          <Route path="/pay" element={<Pay />} />
+          <Route path="/timesheet" element={<Timesheet />} />
+          <Route path="/timeoff" element={<Timeoff />} />
+        </Route>
+      </Route>
+      {/* Manager-only routes */}
+      <Route element={<ProtectedRoute allowedRoles={[2, 3]} />}>
+        <Route element={<Layout />}>
+          <Route path="/managerapproval" element={<ManagerApproval />} />
+        </Route>
+      </Route>
+
+      {/* Admin-only routes */}
+      <Route element={<ProtectedRoute allowedRoles={[3]} />}>
+        <Route element={<Layout />}>
+          <Route path="/admin" element={<AdminDashboard />} />
+        </Route>
       </Route>
 
       {/* Global fallback */}

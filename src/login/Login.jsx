@@ -102,10 +102,9 @@ const Login = () => {
                 <input type="checkbox" className="rounded border-slate-600 text-indigo-500"/>
                 Remember me
               </label>
-              {/*need to make a page for forgot password*/}
-              <a href="#" className="text-indigo-600 hover:text-indigo-300">
+              <Link to="/forgotpassword" className="text-indigo-600 hover:text-indigo-300">
                 Forgot password?
-              </a>
+              </Link>
             </div>
 
             {/*Submit Button and Error Message*/}

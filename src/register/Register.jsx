@@ -81,6 +81,7 @@ const Register = () => {
             id: data.user.id,
             first_name: firstNameTrimmed,
             last_name: lastNameTrimmed,
+            role: '1',
             updated_at: new Date().toISOString(),
           }, { onConflict: 'id' });
 
