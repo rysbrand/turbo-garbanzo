@@ -80,7 +80,7 @@ const Dashboard = () => {
         storedUser = null;
       }
 
-      const userName = storedUser?.firstName || session.user.email || 'User';
+      const userName = storedUser?.first_name || session.user.email || 'User';
       setName(userName);
 
       const { data: { user } } = await supabase.auth.getUser();
@@ -101,7 +101,7 @@ const Dashboard = () => {
         { date: '2026-02-17', start: '9:00 AM', end: '5:00 PM' },
         { date: '2026-02-19', start: '10:00 AM', end: '6:00 PM' },
         { date: '2026-02-25', start: '8:00 AM', end: '4:00 PM' },
-        { date: '2026-03-03', start: '11:00 AM', end: '7:00 PM' }
+        { date: '2026-04-03', start: '11:00 AM', end: '7:00 PM' }
       ];
 
       setSchedule(scheduleDate);
