@@ -31,7 +31,8 @@ const Layout = () => {
     { name: 'Schedule', path: '/schedule' },
     { name: 'Availability', path: '/availability' },
     { name: 'Pay', path: '/pay' },
-    { name: 'Timesheet', path: '/timesheet' }
+    { name: 'Timesheet', path: '/timesheet' },
+    { name: 'AdminDash', path: '/admindashboard'}
   ];
 
   const handleSignOut = async () => {
