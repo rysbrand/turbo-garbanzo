@@ -100,32 +100,6 @@ const Dashboard = () => {
 
       if (activeEntry) setIsClockedIn(true);
 
-      // const scheduleDate = [
-      //   { date: '2026-02-17', start: '9:00 AM', end: '5:00 PM' },
-      //   { date: '2026-02-19', start: '10:00 AM', end: '6:00 PM' },
-      //   { date: '2026-02-25', start: '8:00 AM', end: '4:00 PM' },
-      //   { date: '2026-04-03', start: '11:00 AM', end: '7:00 PM' }
-      // ];
-
-      // setSchedule(scheduleDate);
-
-      // const today = new Date();
-      // const day = today.getDate();
-      // const year = today.getFullYear();
-      // const month = today.getMonth();
-      // const formattedTodayISO = today.toISOString().split('T')[0];
-
-      // const todayShift = scheduleDate.find(shift => shift.date === formattedTodayISO);
-      // const formattedDate = today.toLocaleDateString('en-US', {
-      //   month: 'long', day: 'numeric', year: 'numeric'
-      // });
-
-      // const welcome = todayShift
-      //   ? `Welcome ${userName}, you work today ${formattedDate} from ${todayShift.start} to ${todayShift.end}`
-      //   : `Welcome ${userName}, you do not work today (${formattedDate})`;
-
-      // setWelcomeMessage(welcome);
-
       const today = new Date();
       const day = today.getDate();
       const year = today.getFullYear();
