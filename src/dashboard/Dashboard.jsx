@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase/client.js';
 import { Link, useNavigate } from 'react-router-dom';
+import { logAction } from '../lib/auditLog.js';
 
 const Dashboard = () => {
   const [name, setName] = useState('User');
@@ -24,7 +25,7 @@ const Dashboard = () => {
     return session;
   }
 
-  const handleClockToggle = async () => {
+    const handleClockToggle = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
@@ -32,14 +33,26 @@ const Dashboard = () => {
     const currentTime = now.toISOString();
 
     if (!isClockedIn) {
-      const { error } = await supabase
+      const { data: entry, error } = await supabase
         .from('time_entries')
-        .insert([{ user_id: user.id, clock_in: currentTime }]);
+        .insert([{ user_id: user.id, clock_in: currentTime }])
+        .select()
+        .maybeSingle();
 
       if (error) {
         console.error(error);
         return;
       }
+
+      await logAction({
+        actorId: user.id,
+        targetUserId: user.id,
+        action: 'clock_in',
+        entityType: 'time_entries',
+        entityId: entry.id,
+        newValue: { clock_in: currentTime },
+      });
+
     } else {
       const { data: entry, error } = await supabase
         .from('time_entries')
@@ -48,7 +61,7 @@ const Dashboard = () => {
         .is('clock_out', null)
         .order('clock_in', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (error || !entry) {
         console.error('No active clock-in found', error);
@@ -59,6 +72,16 @@ const Dashboard = () => {
         .from('time_entries')
         .update({ clock_out: currentTime })
         .eq('id', entry.id);
+
+      await logAction({
+        actorId: user.id,
+        targetUserId: user.id,
+        action: 'clock_out',
+        entityType: 'time_entries',
+        entityId: entry.id,
+        oldValue: { clock_in: entry.clock_in, clock_out: null },
+        newValue: { clock_in: entry.clock_in, clock_out: currentTime },
+      });
     }
 
     const timeString = now.toLocaleTimeString();
@@ -80,7 +103,7 @@ const Dashboard = () => {
         .from('profiles')
         .select('first_name')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (profileError) {
         console.error('Error fetching profile:', profileError);
@@ -96,7 +119,7 @@ const Dashboard = () => {
         .is('clock_out', null)
         .order('clock_in', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (activeEntry) setIsClockedIn(true);
 

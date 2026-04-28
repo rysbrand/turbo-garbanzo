@@ -13,6 +13,7 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [registered, setRegistered] = useState(false);
 
   const validateEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
   const normalizePhone = (value) => value.replace(/\D/g, '');
@@ -72,28 +73,7 @@ const Register = () => {
         return;
       }
 
-      // If email confirmation is disabled, we can immediately upsert profile data.
-      // If confirmation is required, the DB trigger still creates the profile row from metadata.
-      if (data.session) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: data.user.id,
-            first_name: firstNameTrimmed,
-            last_name: lastNameTrimmed,
-            role: '1',
-            updated_at: new Date().toISOString(),
-          }, { onConflict: 'id' });
-
-          //console.log(data.user.id, firstNameTrimmed, lastNameTrimmed, emailTrimmed, password);
-        if (profileError) {
-          setError(profileError.message);
-          return;
-        }
-        
-      }
-    
-    navigate('/login');
+    setRegistered(true);
   }
   catch (err) {
       //console.log(err);
@@ -112,103 +92,114 @@ const Register = () => {
           </h1>
         </div>
 
-        <form className="space-y-6" onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">First Name</label>
-              <input
-                type="text"
-                required
-                placeholder="Enter first name"
-                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Last Name</label>
-              <input
-                type="text"
-                required
-                placeholder="Enter last name"
-                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
-              <input
-                type="email"
-                required
-                placeholder="Enter email"
-                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Mobile No.</label>
-              <input
-                type="text"
-                required
-                placeholder="Enter mobile number"
-                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Password</label>
-              <input
-                type="password"
-                required
-                placeholder="Enter password"
-                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Confirm Password</label>
-              <input
-                type="password"
-                required
-                placeholder="Confirm password"
-                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-            </div>
-          </div>
-
-          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-
-          <div className="mt-10 flex justify-center">
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-70 text-white font-semibold px-14 py-3 rounded-lg transition"
-            >
-              {loading ? 'Creating account...' : 'Sign Up'}
-            </button>
-          </div>
-
-          <p className="text-center text-sm text-slate-400 mt-6">
-            Already have an account?{' '}
-            <Link to="/login" className="text-blue-500 hover:text-blue-400 font-medium">
-              Sign in
+        {registered ? (
+          <div className="text-center space-y-4 py-8">
+            <p className="text-green-400 text-lg font-medium">✓ Account created!</p>
+            <p className="text-slate-400 text-sm">
+              Check your email and click the confirmation link before signing in.
+            </p>
+            <Link to="/login" className="text-indigo-400 hover:text-indigo-300 text-sm">
+              Back to Sign In
             </Link>
-          </p>
-        </form>
+          </div>
+        ) : (
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">First Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Enter first name"
+                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Last Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Enter last name"
+                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="Enter email"
+                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Mobile No.</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Enter mobile number"
+                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={mobile}
+                  onChange={(e) => setMobile(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Password</label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Enter password"
+                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Confirm Password</label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Confirm password"
+                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+            <div className="mt-10 flex justify-center">
+              <button
+                type="submit"
+                disabled={loading}
+                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-70 text-white font-semibold px-14 py-3 rounded-lg transition"
+              >
+                {loading ? 'Creating account...' : 'Sign Up'}
+              </button>
+            </div>
+
+            <p className="text-center text-sm text-slate-400 mt-6">
+              Already have an account?{' '}
+              <Link to="/login" className="text-blue-500 hover:text-blue-400 font-medium">
+                Sign in
+              </Link>
+            </p>
+          </form>
+        )}
       </div>
     </div>
   );
-};
-
+}
 export default Register;
