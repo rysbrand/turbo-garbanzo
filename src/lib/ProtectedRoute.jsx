@@ -19,7 +19,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
                     .eq('id', session.user.id)
                     .maybeSingle();
 
-                setRole(profile?.role ?? null);
+                setRole(profile?.user_role ?? null);
             }
 
             setloading(false);
@@ -44,6 +44,10 @@ const ProtectedRoute = ({ allowedRoles }) => {
         return <Navigate to="/dashboard" replace />;
     }
 
+    console.log('ROLE DEBUG: ', {
+            allowedRoles, role,
+        });
+        
     return <Outlet />;
 };
 
