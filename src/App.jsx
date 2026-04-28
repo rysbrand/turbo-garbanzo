@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X, User } from 'lucide-react';
 import { supabase } from './lib/supabase/client.js';
@@ -17,22 +17,45 @@ import Timesheet from './timesheet/Timesheet';
 import Timeoff from './timeoff/Timeoff';
 import AdminDashboard from './admin/AdminDashboard';
 import ManagerApproval from './managerapproval/ManagerApproval';
+import ScheduleManager from './schedule/ScheduleManager';
 import Index from './index/Index';
 
 
 // Layout Component 
 const Layout = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [userRole, setUserRole] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
 
+  useEffect(() => {
+    const fetchRole = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('user_role')
+        .eq('id', user.id)
+        .maybeSingle();
+      setUserRole(data?.user_role ?? null);
+    };
+    fetchRole();
+  }, []);
+
+
   const navItems = [
-    { name: 'Dashboard', path: '/dashboard' },
-    { name: 'Schedule', path: '/schedule' },
-    { name: 'Availability', path: '/availability' },
-    { name: 'Pay', path: '/pay' },
-    { name: 'Timesheet', path: '/timesheet' }
-  ];
+  { name: 'Dashboard', path: '/dashboard' },
+  { name: 'Schedule', path: '/schedule' },
+  { name: 'Availability', path: '/availability' },
+  { name: 'Pay', path: '/pay' },
+  { name: 'Timesheet', path: '/timesheet' },
+  { name: 'Time Off', path: '/timeoff' },
+];
+
+  const managerNavItems = [
+  { name: 'Schedule Manager', path: '/schedule/manage' },
+  { name: 'Approvals', path: '/managerapproval' },
+];
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -101,6 +124,26 @@ const Layout = () => {
               {item.name}
             </Link>
           ))}
+          {/* Manager/Admin only links */}
+          {userRole >= 2 && (
+            <>
+              <div className="border-t border-slate-700 my-2" />
+              {managerNavItems.map(item => (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  onClick={() => setMenuOpen(false)}
+                  className={`py-2.5 px-4 rounded-lg transition text-sm
+                    ${location.pathname === item.path
+                      ? 'bg-indigo-600 text-white'
+                      : 'hover:bg-slate-800 text-slate-300'
+                    }`}
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </>
+          )}
         </nav>
 
         <div className="p-4 border-t border-slate-700">
@@ -162,6 +205,7 @@ const App = () => {
       <Route element={<ProtectedRoute allowedRoles={[2, 3]} />}>
         <Route element={<Layout />}>
           <Route path="/managerapproval" element={<ManagerApproval />} />
+          <Route path="/schedule/manage" element={<ScheduleManager />} />
         </Route>
       </Route>
 
