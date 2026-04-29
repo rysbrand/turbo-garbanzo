@@ -87,6 +87,7 @@ const Layout = () => {
   const managerNavItems = [
   { name: 'Schedule Manager', path: '/schedule/manage' },
   { name: 'Approvals', path: '/managerapproval' },
+  { name: 'Admin', path: '/admin'},
 ];
 
   const handleSignOut = async () => {
