@@ -2,3 +2,8 @@
 
 @source "./**/*.jsx";
 @source "./**/*.js";
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) !important;
+  cursor: pointer;
+  opacity: 1 !important;
+}
