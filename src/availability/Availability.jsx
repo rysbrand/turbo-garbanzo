@@ -57,10 +57,10 @@ const Availability = () => {
           rows.forEach(row => {
             initial[row.day_of_week] = {
               enabled: true,
-              start_time: row.start_time || '',
-              end_time: row.end_time || '',
+              start_time: row.start_time?.slice(0, 5) || '',
+              end_time: row.end_time?.slice(0, 5) || '',
               preference_level: row.preference_level || 'Available',
-              allDay: row.start_time === MIN_TIME && row.end_time === MAX_TIME
+              allDay: row.start_time?.slice(0, 5) === MIN_TIME && row.end_time?.slice(0, 5) === MAX_TIME
             };
           });
         }
@@ -100,8 +100,6 @@ const Availability = () => {
       updatedDay.end_time = '';
     } else if (value === 'Preferred') {
       updatedDay.allDay = false;
-      updatedDay.start_time = '';
-      updatedDay.end_time = '';
     }
   }
     
@@ -174,8 +172,8 @@ const Availability = () => {
         .map(([day, value]) => ({
           user_id: user.id,
           day_of_week: day,
-          start_time: value.start_time,
-          end_time: value.end_time,
+          start_time: value.start_time || null,
+          end_time: value.end_time || null,
           preference_level: value.preference_level
         }));
 
@@ -288,7 +286,7 @@ const Availability = () => {
                         min={MIN_TIME}
                         max={MAX_TIME}
                         onChange={(e) => handleChange(day, 'start_time', e.target.value)}
-                        disabled={dayData.allDay || dayData.preference_level === 'Unavailble'}
+                        disabled={dayData.allDay || dayData.preference_level === 'Unavailable'}
                         className={`flex-1 sm:flex-none bg-slate-900 border px-3 py-2 rounded-lg text-white text-sm w-full sm:w-36 focus:outline-none transition
                           ${dayData.allDay || dayData.preference_level === 'Unavailable'
                             ? 'opacity-40 cursor-not-allowed border-slate-600' 
