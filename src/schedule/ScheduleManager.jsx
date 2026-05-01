@@ -62,7 +62,6 @@ const ScheduleManager = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch all employees
       const { data: empData, error: empError } = await supabase
         .from('profiles')
         .select('id, first_name, last_name, user_role')
@@ -70,7 +69,6 @@ const ScheduleManager = () => {
       if (empError) throw empError;
       setEmployees(empData || []);
 
-      // Fetch shifts for this week
       const { data: shiftData, error: shiftError } = await supabase
         .from('schedules')
         .select('*')
@@ -79,7 +77,6 @@ const ScheduleManager = () => {
       if (shiftError) throw shiftError;
       setShifts(shiftData || []);
 
-      // Fetch coverage requirements
       const { data: covData, error: covError } = await supabase
         .from('coverage_requirements')
         .select('*')
@@ -87,7 +84,6 @@ const ScheduleManager = () => {
       if (covError) throw covError;
       setCoverageReqs(covData || []);
 
-      // Calculate coverage per day
       const covMap = {};
       weekDates.forEach((date, idx) => {
         const iso = toISO(date);
@@ -227,7 +223,6 @@ const ScheduleManager = () => {
     }
   };
 
-
   const handleDeleteShift = async (shiftId) => {
     if (!confirm('Delete this shift?')) return;
     try {
@@ -307,16 +302,17 @@ const ScheduleManager = () => {
             {formatDisplayDate(weekDates[0])} — {formatDisplayDate(weekDates[6])}
           </p>
         </div>
-        <div className="flex gap-2 flex-wrap">
+        {/* CHANGED: stack buttons vertically on mobile */}
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <button
             onClick={() => setShowCoverageSettings(true)}
-            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg transition"
+            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg transition w-full sm:w-auto"
           >
             Coverage Settings
           </button>
           <button
             onClick={() => openAddForm()}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition"
+            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition w-full sm:w-auto"
           >
             + Add Shift
           </button>
@@ -363,8 +359,8 @@ const ScheduleManager = () => {
         </div>
       </div>
 
-      {/* Weekly Grid */}
-      <div className="overflow-x-auto">
+      {/* DESKTOP: Weekly Grid Table — hidden on mobile */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full border-collapse min-w-[700px]">
           <thead>
             <tr>
@@ -425,10 +421,73 @@ const ScheduleManager = () => {
         </table>
       </div>
 
+      {/* MOBILE: Card-per-day view — hidden on desktop */}
+      <div className="md:hidden space-y-4">
+        {weekDates.map((date, idx) => {
+          const iso = toISO(date);
+          const cov = coverage[iso];
+          const dayShifts = shifts.filter(s => s.shift_date === iso);
+
+          return (
+            <div key={idx} className="bg-slate-800 rounded-xl p-4 space-y-3">
+              {/* Day Header */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-white font-semibold">{DAYS[idx]}</span>
+                  <span className="text-slate-400 text-sm ml-2">{formatDisplayDate(date)}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {cov && (
+                    <span className={`text-xs px-2 py-0.5 rounded-full border ${coverageColor(cov.status)}`}>
+                      {cov.count}/{cov.min} · {coverageLabel(cov.status)}
+                    </span>
+                  )}
+                  <button
+                    onClick={() => openAddForm(iso)}
+                    className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs rounded-lg transition"
+                  >
+                    + Add
+                  </button>
+                </div>
+              </div>
+
+              {/* Shifts for this day */}
+              {dayShifts.length === 0 ? (
+                <p className="text-slate-500 text-sm italic">No shifts scheduled</p>
+              ) : (
+                dayShifts.map(shift => {
+                  const emp = employees.find(e => e.id === shift.user_id);
+                  return (
+                    <button
+                      key={shift.id}
+                      onClick={() => openEditForm(shift)}
+                      className="w-full bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/30 rounded-lg p-3 text-left transition"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-white text-sm font-medium">
+                          {emp?.first_name} {emp?.last_name}
+                        </span>
+                        <span className="text-indigo-300 text-xs">
+                          {formatTime(shift.start_time)} → {formatTime(shift.end_time)}
+                        </span>
+                      </div>
+                      {shift.notes && (
+                        <p className="text-slate-400 text-xs mt-1">{shift.notes}</p>
+                      )}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          );
+        })}
+      </div>
+
       {/* Add/Edit Shift Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-800 rounded-2xl p-6 w-full max-w-md space-y-4 shadow-xl">
+          {/* CHANGED: added max-h and overflow-y-auto so modal doesn't get cut off on short screens */}
+          <div className="bg-slate-800 rounded-2xl p-6 w-full max-w-md space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-semibold text-white">
               {editingShift ? 'Edit Shift' : 'Add Shift'}
             </h3>
@@ -521,7 +580,7 @@ const ScheduleManager = () => {
       {/* Coverage Settings Modal */}
       {showCoverageSettings && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-800 rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-xl">
+          <div className="bg-slate-800 rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-semibold text-white">Coverage Requirements</h3>
             <p className="text-slate-400 text-sm">Set the minimum number of employees needed per day.</p>
 
@@ -566,4 +625,3 @@ const ScheduleManager = () => {
 };
 
 export default ScheduleManager;
-

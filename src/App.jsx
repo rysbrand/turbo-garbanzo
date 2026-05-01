@@ -106,84 +106,84 @@ const Layout = () => {
             <User className="h-9 w-9 rounded-full border-2 border-indigo-500 hover:scale-105 transition cursor-pointer" />
           </Link>
 
-          <h1 className="flex-1 text-center text-base sm:text-xl md:text-2xl font-semibold truncate px-2">
+          <h1 className="flex-1 min-w-0 text-center text-base sm:text-xl md:text-2xl font-semibold truncate px-2">
             Company Name
           </h1>
 
           {/* Notification Bell */}
-<div className="relative flex-shrink-0">
-  <button
-    onClick={() => setShowNotifications(!showNotifications)}
-    className="relative p-1"
-    aria-label="Notifications"
-  >
-    <Bell className="h-6 w-6 hover:text-indigo-400 transition" />
-    {unreadCount > 0 && (
-      <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-medium">
-        {unreadCount > 9 ? '9+' : unreadCount}
-      </span>
-    )}
-  </button>
-
-    {/* Notification Dropdown */}
-    {showNotifications && (
-      <>
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setShowNotifications(false)}
-        />
-        <div className="absolute right-0 top-10 w-80 bg-slate-900 border border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
-            <span className="font-medium text-white text-sm">Notifications</span>
+        <div className="relative flex-shrink-0">
+          <button
+            onClick={() => setShowNotifications(!showNotifications)}
+            className="relative p-1"
+            aria-label="Notifications"
+          >
+            <Bell className="h-6 w-6 hover:text-indigo-400 transition" />
             {unreadCount > 0 && (
-              <button
-                onClick={markAllAsRead}
-                className="text-xs text-indigo-400 hover:text-indigo-300"
-              >
-                Mark all read
-              </button>
+              <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-medium">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
             )}
-          </div>
+          </button>
 
-          <div className="max-h-96 overflow-y-auto">
-            {notifications.length === 0 ? (
-              <p className="text-slate-400 text-sm text-center py-6">No notifications</p>
-            ) : (
-              notifications.map(n => (
+            {/* Notification Dropdown */}
+            {showNotifications && (
+              <>
                 <div
-                  key={n.id}
-                  onClick={() => markAsRead(n.id)}
-                  className={`px-4 py-3 border-b border-slate-800 cursor-pointer hover:bg-slate-800 transition
-                    ${!n.read ? 'bg-slate-800/60' : ''}`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className={`text-sm font-medium ${!n.read ? 'text-white' : 'text-slate-400'}`}>
-                        {n.title}
-                      </p>
-                      <p className="text-xs text-slate-500 mt-0.5">{n.message}</p>
-                      <p className="text-xs text-slate-600 mt-1">
-                        {new Date(n.created_at).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          hour: 'numeric',
-                          minute: '2-digit',
-                          hour12: true
-                        })}
-                      </p>
-                    </div>
-                    {!n.read && (
-                      <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0 mt-1" />
+                  className="fixed inset-0 z-40"
+                  onClick={() => setShowNotifications(false)}
+                />
+                <div className="absolute right-0 top-10 w-72 max-w-[calc(100vw-2rem)] bg-slate-900 border border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
+                    <span className="font-medium text-white text-sm">Notifications</span>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={markAllAsRead}
+                        className="text-xs text-indigo-400 hover:text-indigo-300"
+                      >
+                        Mark all read
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="max-h-96 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <p className="text-slate-400 text-sm text-center py-6">No notifications</p>
+                    ) : (
+                      notifications.map(n => (
+                        <div
+                          key={n.id}
+                          onClick={() => markAsRead(n.id)}
+                          className={`px-4 py-3 border-b border-slate-800 cursor-pointer hover:bg-slate-800 transition
+                            ${!n.read ? 'bg-slate-800/60' : ''}`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <p className={`text-sm font-medium ${!n.read ? 'text-white' : 'text-slate-400'}`}>
+                                {n.title}
+                              </p>
+                              <p className="text-xs text-slate-500 mt-0.5">{n.message}</p>
+                              <p className="text-xs text-slate-600 mt-1">
+                                {new Date(n.created_at).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: 'numeric',
+                                  minute: '2-digit',
+                                  hour12: true
+                                })}
+                              </p>
+                            </div>
+                            {!n.read && (
+                              <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0 mt-1" />
+                            )}
+                          </div>
+                        </div>
+                      ))
                     )}
                   </div>
                 </div>
-              ))
+              </>
             )}
           </div>
-        </div>
-      </>
-    )}
-  </div>
 
           {/* Hamburger — visible on all screen sizes */}
           <button
@@ -207,7 +207,7 @@ const Layout = () => {
 
       {/* Side Drawer — visible on all screen sizes */}
       <div
-        className={`fixed top-0 right-0 h-full w-64 bg-slate-900 z-50 transform transition-transform duration-300 flex flex-col
+        className={`fixed top-0 right-0 h-full w-64 max-w-[85vw] bg-slate-900 z-50 transform transition-transform duration-300 flex flex-col
           ${menuOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
         <div className="flex justify-between items-center p-4 border-b border-slate-700">
@@ -266,7 +266,7 @@ const Layout = () => {
 
       {/* Main Content */}
       <main className="flex-1 w-full">
-        <div className="max-w-6xl mx-auto p-4 sm:p-6">
+        <div className="max-w-6xl mx-auto p-4 sm:p-6 overflow-x-hidden">
           <Outlet />
         </div>
       </main>
