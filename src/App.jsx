@@ -32,28 +32,28 @@ const Layout = () => {
   const location = useLocation();
 
   useEffect(() => {
-  const fetchRoleAndNotifications = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const fetchRoleAndNotifications = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('user_role')
-      .eq('id', user.id)
-      .maybeSingle();
-    setUserRole(profileData?.user_role ?? null);
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('user_role')
+        .eq('id', user.id)
+        .maybeSingle();
+      setUserRole(profileData?.user_role ?? null);
 
-    const { data: notifData } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(20);
-    setNotifications(notifData || []);
-  };
+      const { data: notifData } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      setNotifications(notifData || []);
+    };
 
-  fetchRoleAndNotifications();
-}, []);
+    fetchRoleAndNotifications();
+  }, []);
 
   const markAsRead = async (id) => {
     await supabase
@@ -74,21 +74,20 @@ const Layout = () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
-
   const navItems = [
-  { name: 'Dashboard', path: '/dashboard' },
-  { name: 'Schedule', path: '/schedule' },
-  { name: 'Availability', path: '/availability' },
-  { name: 'Pay', path: '/pay' },
-  { name: 'Timesheet', path: '/timesheet' },
-  { name: 'Time Off', path: '/timeoff' },
-];
+    { name: 'Dashboard', path: '/dashboard' },
+    { name: 'Schedule', path: '/schedule' },
+    { name: 'Availability', path: '/availability' },
+    { name: 'Pay', path: '/pay' },
+    { name: 'Timesheet', path: '/timesheet' },
+    { name: 'Time Off', path: '/timeoff' },
+  ];
 
   const managerNavItems = [
-  { name: 'Schedule Manager', path: '/schedule/manage' },
-  { name: 'Approvals', path: '/managerapproval' },
-  { name: 'Admin', path: '/admin'},
-];
+    { name: 'Schedule Manager', path: '/schedule/manage' },
+    { name: 'Approvals', path: '/managerapproval' },
+    { name: 'Admin', path: '/admin'},
+  ];
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -106,24 +105,25 @@ const Layout = () => {
             <User className="h-9 w-9 rounded-full border-2 border-indigo-500 hover:scale-105 transition cursor-pointer" />
           </Link>
 
+          {/* CHANGED: added min-w-0 to allow proper truncation on small screens */}
           <h1 className="flex-1 min-w-0 text-center text-base sm:text-xl md:text-2xl font-semibold truncate px-2">
             Company Name
           </h1>
 
           {/* Notification Bell */}
-        <div className="relative flex-shrink-0">
-          <button
-            onClick={() => setShowNotifications(!showNotifications)}
-            className="relative p-1"
-            aria-label="Notifications"
-          >
-            <Bell className="h-6 w-6 hover:text-indigo-400 transition" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-medium">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            )}
-          </button>
+          <div className="relative flex-shrink-0">
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="relative p-1"
+              aria-label="Notifications"
+            >
+              <Bell className="h-6 w-6 hover:text-indigo-400 transition" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-medium">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
 
             {/* Notification Dropdown */}
             {showNotifications && (
@@ -132,6 +132,7 @@ const Layout = () => {
                   className="fixed inset-0 z-40"
                   onClick={() => setShowNotifications(false)}
                 />
+                {/* CHANGED: w-72 + max-w-[calc(100vw-2rem)] prevents overflow on small screens */}
                 <div className="absolute right-0 top-10 w-72 max-w-[calc(100vw-2rem)] bg-slate-900 border border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden">
                   <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
                     <span className="font-medium text-white text-sm">Notifications</span>
@@ -185,7 +186,7 @@ const Layout = () => {
             )}
           </div>
 
-          {/* Hamburger — visible on all screen sizes */}
+          {/* Hamburger */}
           <button
             className="flex-shrink-0 p-1"
             onClick={() => setMenuOpen(true)}
@@ -205,7 +206,8 @@ const Layout = () => {
         />
       )}
 
-      {/* Side Drawer — visible on all screen sizes */}
+      {/* Side Drawer */}
+      {/* CHANGED: added max-w-[85vw] so drawer never takes up full screen on very small devices */}
       <div
         className={`fixed top-0 right-0 h-full w-64 max-w-[85vw] bg-slate-900 z-50 transform transition-transform duration-300 flex flex-col
           ${menuOpen ? 'translate-x-0' : 'translate-x-full'}`}
@@ -265,6 +267,7 @@ const Layout = () => {
       </div>
 
       {/* Main Content */}
+      {/* CHANGED: added overflow-x-hidden to prevent child components from blowing out page width */}
       <main className="flex-1 w-full">
         <div className="max-w-6xl mx-auto p-4 sm:p-6 overflow-x-hidden">
           <Outlet />
@@ -309,6 +312,7 @@ const App = () => {
           <Route path="/timeoff" element={<Timeoff />} />
         </Route>
       </Route>
+
       {/* Manager-only routes */}
       <Route element={<ProtectedRoute allowedRoles={[2, 3]} />}>
         <Route element={<Layout />}>

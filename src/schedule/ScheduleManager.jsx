@@ -359,8 +359,8 @@ const ScheduleManager = () => {
         </div>
       </div>
 
-      {/* DESKTOP: Weekly Grid Table — hidden on mobile */}
-      <div className="hidden md:block overflow-x-auto">
+      {/* Weekly Grid — scrolls horizontally within its box, never the whole page */}
+      <div className="overflow-x-auto rounded-xl border border-slate-700">
         <table className="w-full border-collapse min-w-[700px]">
           <thead>
             <tr>
@@ -419,68 +419,6 @@ const ScheduleManager = () => {
             ))}
           </tbody>
         </table>
-      </div>
-
-      {/* MOBILE: Card-per-day view — hidden on desktop */}
-      <div className="md:hidden space-y-4">
-        {weekDates.map((date, idx) => {
-          const iso = toISO(date);
-          const cov = coverage[iso];
-          const dayShifts = shifts.filter(s => s.shift_date === iso);
-
-          return (
-            <div key={idx} className="bg-slate-800 rounded-xl p-4 space-y-3">
-              {/* Day Header */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-white font-semibold">{DAYS[idx]}</span>
-                  <span className="text-slate-400 text-sm ml-2">{formatDisplayDate(date)}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {cov && (
-                    <span className={`text-xs px-2 py-0.5 rounded-full border ${coverageColor(cov.status)}`}>
-                      {cov.count}/{cov.min} · {coverageLabel(cov.status)}
-                    </span>
-                  )}
-                  <button
-                    onClick={() => openAddForm(iso)}
-                    className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs rounded-lg transition"
-                  >
-                    + Add
-                  </button>
-                </div>
-              </div>
-
-              {/* Shifts for this day */}
-              {dayShifts.length === 0 ? (
-                <p className="text-slate-500 text-sm italic">No shifts scheduled</p>
-              ) : (
-                dayShifts.map(shift => {
-                  const emp = employees.find(e => e.id === shift.user_id);
-                  return (
-                    <button
-                      key={shift.id}
-                      onClick={() => openEditForm(shift)}
-                      className="w-full bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/30 rounded-lg p-3 text-left transition"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-white text-sm font-medium">
-                          {emp?.first_name} {emp?.last_name}
-                        </span>
-                        <span className="text-indigo-300 text-xs">
-                          {formatTime(shift.start_time)} → {formatTime(shift.end_time)}
-                        </span>
-                      </div>
-                      {shift.notes && (
-                        <p className="text-slate-400 text-xs mt-1">{shift.notes}</p>
-                      )}
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          );
-        })}
       </div>
 
       {/* Add/Edit Shift Modal */}
