@@ -15,6 +15,7 @@ const ScheduleManager = () => {
   const [coverageReqs, setCoverageReqs] = useState([]);
   const [editingShift, setEditingShift] = useState(null);
   const [error, setError] = useState('');
+  const [availability, setAvailability] = useState([]);
 
   // Form state
   const [formUserId, setFormUserId] = useState('');
@@ -51,6 +52,10 @@ const ScheduleManager = () => {
     return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
   }
 
+  function getAvailability(userId, dayName) {
+    return availability.find(a => a.user_id === userId && a.day_of_week === dayName || null);
+  }
+
   function formatDisplayDate(date) {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
@@ -83,6 +88,12 @@ const ScheduleManager = () => {
         .order('day_of_week');
       if (covError) throw covError;
       setCoverageReqs(covData || []);
+
+      const { data: availData, error: availError } = await supabase
+        .from('availability')
+        .select('*');
+      if (availError) throw availError;
+      setAvailability(availData || []);
 
       const covMap = {};
       weekDates.forEach((date, idx) => {
@@ -344,7 +355,8 @@ const ScheduleManager = () => {
       </div>
 
       {/* Coverage Legend */}
-      <div className="flex flex-wrap gap-3 text-xs">
+      <div className="flex flex-wrap gap-4 text-xs">
+        <p className="text-slate-400 font-medium w-full">Coverage:</p>
         <div className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-green-400" />
           <span className="text-slate-400">Good coverage</span>
@@ -355,11 +367,24 @@ const ScheduleManager = () => {
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-red-400" />
-          <span className="text-slate-400">Critical — understaffed</span>
+          <span className="text-slate-400">Critical</span>
+        </div>
+        <p className="text-slate-400 font-medium w-full mt-1">Availability:</p>
+        <div className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-green-400" />
+          <span className="text-slate-400">Can work</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
+          <span className="text-slate-400">Prefers off</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-red-400" />
+          <span className="text-slate-400">Can't work</span>
         </div>
       </div>
 
-      {/* Weekly Grid — scrolls horizontally within its box, never the whole page */}
+      {/* Weekly Grid */}
       <div className="overflow-x-auto rounded-xl border border-slate-700">
         <table className="w-full border-collapse min-w-[700px]">
           <thead>
@@ -407,9 +432,46 @@ const ScheduleManager = () => {
                       ) : (
                         <button
                           onClick={() => openAddForm(iso, emp.id)}
-                          className="w-full h-16 rounded-lg border border-dashed border-slate-600 hover:border-indigo-500 hover:bg-slate-700/50 transition text-slate-600 hover:text-indigo-400 text-lg"
+                          className="w-full min-h-16 rounded-lg border border-dashed hover:border-indigo-500 hover:bg-slate-700/50 transition text-lg flex flex-col items-center justify-center gap-1 p-1"
+                          style={{
+                            borderColor: (() => {
+                              const avail = getAvailability(emp.id, DAYS[idx]);
+                              if (!avail) return undefined;
+                              if (avail.preference_level === 'Unavailable') return 'rgb(239,68,68)';
+                              if (avail.preference_level === 'Preferred') return 'rgb(234,179,8)';
+                              return 'rgb(34,197,94)';
+                            })()
+                          }}
                         >
-                          +
+                          {(() => {
+                            const avail = getAvailability(emp.id, DAYS[idx]);
+                            if (!avail) return <span className="text-slate-600">+</span>;
+                            if (avail.preference_level === 'Unavailable') {
+                              return <span className="text-red-400 text-xs font-medium">Can't Work</span>;
+                            }
+                            if (avail.preference_level === 'Preferred') {
+                              return (
+                                <>
+                                  <span className="text-yellow-400 text-xs font-medium">Prefers Off</span>
+                                  {avail.start_time && avail.end_time && (
+                                    <span className="text-yellow-600 text-xs">
+                                      {formatTime(avail.start_time)} – {formatTime(avail.end_time)}
+                                    </span>
+                                  )}
+                                </>
+                              );
+                            }
+                            return (
+                              <>
+                                <span className="text-green-400 text-xs font-medium">Available</span>
+                                {avail.start_time && avail.end_time && (
+                                  <span className="text-green-600 text-xs">
+                                    {formatTime(avail.start_time)} – {formatTime(avail.end_time)}
+                                  </span>
+                                )}
+                              </>
+                            );
+                          })()}
                         </button>
                       )}
                     </td>
