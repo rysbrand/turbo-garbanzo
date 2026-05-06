@@ -19,6 +19,7 @@ import AdminDashboard from './admin/AdminDashboard';
 import ManagerApproval from './managerapproval/ManagerApproval';
 import ScheduleManager from './schedule/ScheduleManager';
 import Index from './index/Index';
+import UserManagement from './admin/UserManagement';
 
 
 // Layout Component 
@@ -336,6 +337,12 @@ const App = () => {
       <Route element={<ProtectedRoute allowedRoles={[3]} />}>
         <Route element={<Layout />}>
           <Route path="/admin" element={<AdminDashboard />} />
+        </Route>
+      </Route>
+      <Route element={<ProtectedRoute allowedRoles={[3]} />}>
+      <Route element={<Layout />}>
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/users" element={<UserManagement />} />
         </Route>
       </Route>
 

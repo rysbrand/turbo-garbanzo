@@ -104,6 +104,13 @@ const AdminDashboard = () => {
             >
               <h2 className="font-semibold text-lg">My Profile</h2>
             </Link>
+
+            <Link
+              to="/admin/users"
+              className="bg-slate-800 rounded-xl p-6 text-center shadow hover:bg-slate-700 transition"
+            >
+              <h2 className="font-semibold text-lg">User Management</h2>
+            </Link>
           </nav>
 
         <div className="bg-slate-800 rounded-xl p-8 text-center shadow">
