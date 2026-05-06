@@ -1,5 +1,7 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase/client.js';
+
 
 const StatChip = ({ label, value}) => {
   return (
@@ -38,6 +40,26 @@ const Card = ({ title, children, right }) => (
 );
 
 const AdminDashboard = () => {
+
+  const [adminName, setAdminName] = useState('');
+
+  useEffect(() => {
+      const fetchAdmin = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data } = await supabase
+          .from('profiles')
+          .select('first_name')
+          .eq('id', user.id)
+          .maybeSingle();
+        setAdminName(data?.first_name || user.email);
+      };
+      fetchAdmin();
+    }, []);
+
+    const today = new Date().toLocaleDateString('en-US', {
+      month: 'long', day: 'numeric', year: 'numeric'
+    });
   const stats = {
     clockedIn: 12,
     late: 3,
@@ -55,41 +77,40 @@ const AdminDashboard = () => {
       <main className="flex-1 p-6 space-y-8 max-w-7xl w-full mx-auto">
         
         <nav className="grid grid-cols-2 md:grid-cols-4 gap-6" aria-label="Admin quick navigation">
-          <Link
-            to="/admin/employees"
-            className="bg-slate-800 rounded-xl p-6 text-center shadow hover:bg-slate-700 transition "
-          >
-            <h2 className="font-semibold text-lg">Employee Mgmt</h2>
-          </Link>
+            <Link
+              to="/schedule/manage"
+              className="bg-slate-800 rounded-xl p-6 text-center shadow hover:bg-slate-700 transition"
+            >
+              <h2 className="font-semibold text-lg">Schedule Mgmt</h2>
+            </Link>
 
-          <Link
-            to="/admin/schedule"
-            className="bg-slate-800 rounded-xl p-6 text-center shadow hover:bg-slate-700 transition "
-          >
-            <h2 className="font-semibold text-lg">Schedule Mgmt</h2>
-          </Link>
+            <Link
+              to="/managerapproval"
+              className="bg-slate-800 rounded-xl p-6 text-center shadow hover:bg-slate-700 transition"
+            >
+              <h2 className="font-semibold text-lg">Time‑Off Requests</h2>
+            </Link>
 
-          <Link
-            to="/admin/time-off"
-            className="bg-slate-800 rounded-xl p-6 text-center shadow hover:bg-slate-700 transition "
-          >
-            <h2 className="font-semibold text-lg">Time‑Off Requests</h2>
-          </Link>
+            <Link
+              to="/timesheet"
+              className="bg-slate-800 rounded-xl p-6 text-center shadow hover:bg-slate-700 transition"
+            >
+              <h2 className="font-semibold text-lg">Timesheets</h2>
+            </Link>
 
-          <Link
-            to="/admin/timesheets"
-            className="bg-slate-800 rounded-xl p-6 text-center shadow hover:bg-slate-700 transition "
-          >
-            <h2 className="font-semibold text-lg">Timesheets</h2>
-          </Link>
+            <Link
+              to="/profile"
+              className="bg-slate-800 rounded-xl p-6 text-center shadow hover:bg-slate-700 transition"
+            >
+              <h2 className="font-semibold text-lg">My Profile</h2>
+            </Link>
+          </nav>
 
-        </nav>
-
-        <div className="bg-slate-800 rounded-xl p-8 text-center shadow ">
-          <h2 className="text-xl font-medium">
-            Welcome, {stats.adminEmail}! Here’s your company overview for {stats.dateLabel}.
-          </h2>
-        </div>
+        <div className="bg-slate-800 rounded-xl p-8 text-center shadow">
+            <h2 className="text-xl font-medium">
+              Welcome, {adminName}! Here's your company overview for {today}.
+            </h2>
+          </div>
 
         <section aria-label="Visuals Board" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
 

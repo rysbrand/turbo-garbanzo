@@ -115,8 +115,10 @@ const Layout = () => {
           </Link>
 
           {/* CHANGED: added min-w-0 to allow proper truncation on small screens */}
+          {/* TODO: Pull company name dynamically from Supabase settings table.
+    Will be organization-specific once multi-org support is implemented. */}
           <h1 className="flex-1 min-w-0 text-center text-base sm:text-xl md:text-2xl font-semibold truncate px-2">
-            Company Name
+            My Workplace
           </h1>
 
           {/* Notification Bell */}
@@ -287,7 +289,7 @@ const Layout = () => {
       <footer className="w-full bg-slate-900 py-5 mt-auto">
         <div className="max-w-7xl mx-auto px-4">
           <p className="text-center text-slate-400 text-sm">
-            &copy; {new Date().getFullYear()} Company Name. All rights reserved.
+            &copy; {new Date().getFullYear()} My Workplace. All rights reserved.
           </p>
         </div>
       </footer>
