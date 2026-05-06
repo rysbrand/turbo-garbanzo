@@ -96,8 +96,12 @@ const Layout = () => {
   const managerNavItems = [
     { name: 'Schedule Manager', path: '/schedule/manage' },
     { name: 'Approvals', path: '/managerapproval' },
-    { name: 'Admin', path: '/admin'},
   ];
+
+  const adminNavItems = [
+    { name: 'Admin Dashboard', path: '/admin' },
+    { name: 'User Management', path: '/admin/users' },
+  ]
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -251,6 +255,26 @@ const Layout = () => {
             <>
               <div className="border-t border-slate-700 my-2" />
               {managerNavItems.map(item => (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  onClick={() => setMenuOpen(false)}
+                  className={`py-2.5 px-4 rounded-lg transition text-sm
+                    ${location.pathname === item.path
+                      ? 'bg-indigo-600 text-white'
+                      : 'hover:bg-slate-800 text-slate-300'
+                    }`}
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </>
+          )}
+          {/*Admin only links*/}
+          {userRole === 3 && (
+            <>
+              <div className="border-t border-slate-700 my-2" />
+              {adminNavItems.map(item => (
                 <Link
                   key={item.name}
                   to={item.path}
