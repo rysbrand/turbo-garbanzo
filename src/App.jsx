@@ -55,15 +55,24 @@ const Layout = () => {
     fetchRoleAndNotifications();
   }, []);
 
-  const markAsRead = async (id) => {
-    await supabase
-      .from('notifications')
-      .update({ read: true })
-      .eq('id', id);
-    setNotifications(prev =>
-      prev.map(n => n.id === id ? { ...n, read: true } : n)
-    );
-  };
+  const markAsRead = async (id, entity_type) => {
+  await supabase
+    .from('notifications')
+    .update({ read: true })
+    .eq('id', id);
+  setNotifications(prev =>
+    prev.map(n => n.id === id ? { ...n, read: true } : n)
+  );
+  setShowNotifications(false);
+
+  if (entity_type === 'time_off_request') {
+    navigate('/managerapproval');
+  } else if (entity_type === 'time_off_decision') {
+    navigate('/timeoff');
+  } else if (entity_type === 'schedules') {
+    navigate('/schedule');
+  }
+};
 
   const markAllAsRead = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -153,7 +162,7 @@ const Layout = () => {
                       notifications.map(n => (
                         <div
                           key={n.id}
-                          onClick={() => markAsRead(n.id)}
+                          onClick={() => markAsRead(n.id, n.entity_type)}
                           className={`px-4 py-3 border-b border-slate-800 cursor-pointer hover:bg-slate-800 transition
                             ${!n.read ? 'bg-slate-800/60' : ''}`}
                         >
