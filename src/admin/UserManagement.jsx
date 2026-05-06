@@ -21,26 +21,43 @@ const UserManagement = () => {
     const [editLastName, setEditLastName] = useState('');
     const [editRole, setEditRole] = useState(1);
     const [deleting, setDeleting] = useState(null);
+    const [editPayType, setEditPayType] = useState('hourly');
+    const [editPayRate, setEditPayRate] = useState(0);
+    const [editBenefits, setEditBenefits] = useState(false);
+    const [editHireDate, setEditHireDate] = useState('');
 
-  const fetchUsers = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name, username, user_role, updated_at')
-        .order('last_name');
-      if (error) throw error;
-      setUsers(data || []);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchUsers = async () => {
+      try {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, username, user_role, updated_at')
+          .order('last_name');
+        if (profileError) throw profileError;
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+        const { data: compData, error: compError } = await supabase
+          .from('employee_compensation')
+          .select('*');
+        if (compError) throw compError;
 
+        console.log('profiles:', profileData, profileError);
+        console.log('comp:', compData, compError);
+
+        const merged = (profileData || []).map(profile => ({
+          ...profile,
+          compensation: (compData || []).find(c => c.user_id === profile.id) || null
+        }));
+
+        setUsers(merged);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    useEffect(() => {
+      fetchUsers();
+    }, []);
   const handleRoleChange = async (userId, newRole, oldRole) => {
     setSaving(userId);
     try {
@@ -82,7 +99,7 @@ const UserManagement = () => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
 
-    const { error } = await supabase
+    const { error: profileError } = await supabase
       .from('profiles')
       .update({
         first_name: editFirstName.trim(),
@@ -92,7 +109,22 @@ const UserManagement = () => {
       })
       .eq('id', editingUser.id);
 
-    if (error) throw error;
+    if (profileError) throw profileError;
+
+    // Upsert compensation record
+    const { error: compError } = await supabase
+      .from('employee_compensation')
+      .upsert({
+        user_id: editingUser.id,
+        pay_type: editPayType,
+        pay_rate: parseFloat(editPayRate) || 0,
+        benefits_eligible: editBenefits,
+        hire_date: editHireDate || null,
+        updated_at: new Date().toISOString(),
+        updated_by: user.id,
+      }, { onConflict: 'user_id' });
+
+    if (compError) throw compError;
 
     await logAction({
       actorId: user.id,
@@ -104,11 +136,19 @@ const UserManagement = () => {
         first_name: editingUser.first_name,
         last_name: editingUser.last_name,
         user_role: editingUser.user_role,
+        pay_type: editingUser.compensation?.pay_type,
+        pay_rate: editingUser.compensation?.pay_rate,
+        benefits_eligible: editingUser.compensation?.benefits_eligible,
+        hire_date: editingUser.compensation?.hire_date,
       },
       newValue: {
         first_name: editFirstName.trim(),
         last_name: editLastName.trim(),
         user_role: editRole,
+        pay_type: editPayType,
+        pay_rate: editPayRate,
+        benefits_eligible: editBenefits,
+        hire_date: editHireDate,
       },
     });
 
@@ -118,6 +158,13 @@ const UserManagement = () => {
         first_name: editFirstName.trim(),
         last_name: editLastName.trim(),
         user_role: editRole,
+        compensation: {
+          ...u.compensation,
+          pay_type: editPayType,
+          pay_rate: editPayRate,
+          benefits_eligible: editBenefits,
+          hire_date: editHireDate,
+        }
       } : u)
     );
 
@@ -227,6 +274,10 @@ const handleDelete = async (userId) => {
                     setEditFirstName(user.first_name || '');
                     setEditLastName(user.last_name || '');
                     setEditRole(user.user_role || 1);
+                    setEditPayType(user.compensation?.pay_type || 'hourly');
+                    setEditPayRate(user.compensation?.pay_rate || 0);
+                    setEditBenefits(user.compensation?.benefits_eligible || false);
+                    setEditHireDate(user.compensation?.hire_date || '');
                     }}
                     className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition"
                 >
@@ -286,6 +337,60 @@ const handleDelete = async (userId) => {
                 ))}
               </select>
             </div>
+            <div className="border-t border-slate-700 pt-4">
+  <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mb-3">Compensation</p>
+  
+  <div className="space-y-4">
+    <div>
+      <label className="block text-xs text-slate-400 mb-1">Pay Type</label>
+      <select
+        value={editPayType}
+        onChange={e => setEditPayType(e.target.value)}
+        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      >
+        <option value="hourly">Hourly</option>
+        <option value="salary">Salary</option>
+      </select>
+    </div>
+
+    <div>
+      <label className="block text-xs text-slate-400 mb-1">
+        {editPayType === 'hourly' ? 'Hourly Rate ($)' : 'Annual Salary ($)'}
+      </label>
+      <input
+        type="number"
+        min="0"
+        step="0.01"
+        value={editPayRate}
+        onChange={e => setEditPayRate(e.target.value)}
+        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      />
+    </div>
+
+    <div>
+      <label className="block text-xs text-slate-400 mb-1">Hire Date</label>
+      <input
+        type="date"
+        value={editHireDate}
+        onChange={e => setEditHireDate(e.target.value)}
+        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      />
+    </div>
+
+    <div className="flex items-center gap-3">
+      <input
+        type="checkbox"
+        id="benefits"
+        checked={editBenefits}
+        onChange={e => setEditBenefits(e.target.checked)}
+        className="rounded border-slate-600"
+      />
+      <label htmlFor="benefits" className="text-sm text-slate-300">
+        Benefits Eligible
+      </label>
+        </div>
+      </div>
+  </div>
 
             <div className="flex gap-3 pt-2">
               <button
