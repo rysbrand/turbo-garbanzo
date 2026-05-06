@@ -30,7 +30,7 @@ const ProgressBar = ({ value = 0 }) => {
 };
 
 const Card = ({ title, children, right }) => (
-  <div className="bg-slate-800 rounded-xl p-6 shadow-lg ">
+  <div className="bg-slate-800 rounded-xl p-6 shadow-lg">
     <div className="flex items-center justify-between mb-4">
       <h3 className="text-lg font-semibold">{title}</h3>
       {right}
@@ -38,28 +38,55 @@ const Card = ({ title, children, right }) => (
     {children}
   </div>
 );
+const formatAction = (action) => {
+  const labels = {
+    clock_in: 'Clocked in',
+    clock_out: 'Clocked out',
+    shift_created: 'Shift created',
+    shift_updated: 'Shift updated',
+    shift_deleted: 'Shift deleted',
+    time_off_requested: 'Time off requested',
+    time_off_approved: 'Time off approved',
+    time_off_denied: 'Time off denied',
+    time_off_cancelled: 'Time off cancelled',
+    role_changed: 'Role changed',
+    profile_updated_by_admin: 'Profile updated',
+    profile_deleted: 'Profile deleted',
+  };
+  return labels[action] || action;
+};
+
 
 const AdminDashboard = () => {
-
   const [adminName, setAdminName] = useState('');
+  const [auditLog, setAuditLog] = useState([]);
 
   useEffect(() => {
-      const fetchAdmin = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-        const { data } = await supabase
-          .from('profiles')
-          .select('first_name')
-          .eq('id', user.id)
-          .maybeSingle();
-        setAdminName(data?.first_name || user.email);
-      };
-      fetchAdmin();
-    }, []);
+    const fetchData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    const today = new Date().toLocaleDateString('en-US', {
-      month: 'long', day: 'numeric', year: 'numeric'
-    });
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('first_name')
+        .eq('id', user.id)
+        .maybeSingle();
+      setAdminName(profileData?.first_name || user.email);
+
+      const { data: logData } = await supabase
+        .from('audit_log')
+        .select('*, actor:profiles!audit_log_actor_id_fkey(first_name, last_name), target:profiles!audit_log_target_user_id_fkey(first_name, last_name)')
+        .order('created_at', { ascending: false })
+        .limit(10);
+      setAuditLog(logData || []);
+    };
+
+    fetchData();
+  }, []);
+
+  const today = new Date().toLocaleDateString('en-US', {
+    month: 'long', day: 'numeric', year: 'numeric'
+  });
   const stats = {
     clockedIn: 12,
     late: 3,
@@ -119,7 +146,7 @@ const AdminDashboard = () => {
             </h2>
           </div>
 
-        <section aria-label="Visuals Board" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        <section aria-label="Visuals Board" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 items-start">
 
           <Card
             title="Clock‑In Status (Today)"
@@ -200,7 +227,41 @@ const AdminDashboard = () => {
               <p className="text-xs text-slate-400">Pay period completion</p>
             </div>
           </Card>
-
+          {/* Recent Activity */}
+          <div style={{ gridColumn: '1 / -1' }}>
+            <Card title="Recent Activity">
+              {auditLog.length === 0 ? (
+                <p className="text-slate-400 text-sm">No recent activity.</p>
+              ) : (
+                <div className="space-y-3">
+                  {auditLog.map(entry => (
+                    <div key={entry.id} className="flex items-start justify-between gap-4 border-b border-slate-700/50 pb-3 last:border-0 last:pb-0">
+                      <div>
+                        <p className="text-white text-sm font-medium">
+                          {formatAction(entry.action)}
+                        </p>
+                        <p className="text-slate-400 text-xs mt-0.5">
+                          {entry.actor?.first_name} {entry.actor?.last_name}
+                          {entry.target && entry.target.first_name !== entry.actor?.first_name && (
+                            <span> → {entry.target.first_name} {entry.target.last_name}</span>
+                          )}
+                        </p>
+                      </div>
+                      <span className="text-slate-500 text-xs shrink-0">
+                        {new Date(entry.created_at).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true
+                        })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          </div>
         </section>
       </main>
     </div>
