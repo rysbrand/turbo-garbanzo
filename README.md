@@ -120,7 +120,7 @@ Wrapping auth functions in a subquery causes Postgres to evaluate them once per 
 
 ## 👥 Team
 
-Built by Becca Ysbrand, KayLynn Rylee Smith as a capstone project for Advanced Application Development at Southeast Technical Institute.
+Built by Becca Ysbrand, KayLynn Johnson, Rylee Smith as a capstone project for Advanced Application Development at Southeast Technical Institute.
 
 ---
 
